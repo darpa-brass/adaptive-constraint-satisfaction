@@ -1,0 +1,12 @@
+{
+	"server": {
+		"username": "",
+		"password": "",
+		"address": "orion.isis.vanderbilt.edu",
+		"port": 2424
+	},
+	"database": {
+		"username": "",
+		"password": ""
+	}
+}
