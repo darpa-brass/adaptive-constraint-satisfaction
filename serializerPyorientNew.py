@@ -23,89 +23,114 @@ class Processor(object):
     if self.client.db_exists( database):
       self.client.db_drop( database )
     self.client.db_create( database, pyorient.DB_TYPE_GRAPH)
-    #self.client.command( "create class Entity extends V" )
-    #self.client.command( "create class Connection extends E" )
-    #self.client.command( "create class Containment extends E" )
-    #self.client.command( "create class Inheritance extends E" )
-    #self.client.command( "create class Reference extends E" )
-
-  def loadDatabase(self, database, loadrObject):
-    self.loadrObject=loadrObject
-    self.client.db_open(database, self.username, self.password)
-    for element in self.loadrObject:
-      print(repr("insert into Entity set id='"+element['id']+"', type='"+element['type']+"' , kind='"+element['kind']+"' , guid='"+element['guid']+"', edgeProperties="+ json.dumps(element['edgeProperties'])+", attributes="+ json.dumps(element['attributes'])+", `contains`='["+ ','.join(element['contains'])+"]', connects = '["+ ','.join(element['connects'])+"]', references= '["+(element['references'][0] if len(element['references']) >0 else '')+"]', name='"+ (element['name'] if element['name'] is not None else '') +"' , inherits='["+ ','.join(element['inherits'])+"]'"))
-      self.client.command("insert into Entity set id='"+element['id']+"', type='"+element['type']+"' , kind='"+element['kind']+"' , guid='"+element['guid']+"', edgeProperties="+ json.dumps(element['edgeProperties'])+", attributes="+ json.dumps(element['attributes'])+", `contains`='["+ ','.join(element['contains'])+"]', connects = '["+ ','.join(element['connects'])+"]', references= '["+(element['references'][0] if len(element['references']) >0 else '')+"]', name='"+ (element['name'] if element['name'] is not None else '') +"' , inherits='["+ ','.join(element['inherits'])+"]'")
-    for element in self.loadrObject:
-      for edge in element['connects']:
-        print("create edge Connection from (select from Entity where id = '"+element['id']+"') to (select from Entity where id = '"+edge+"')") 
-        self.client.command("create edge Connection from (select from Entity where id = '"+element['id']+"') to (select from Entity where id = '"+edge+"') set EdgeProp="+ json.dumps(element['edgeProperties']))
-      for edge in element['contains']:
-        print("create edge Containment from (select from Entity where id = '"+element['id']+"') to (select from Entity where id = '"+edge+"')")
-        self.client.command("create edge Containment from (select from Entity where id = '"+element['id']+"') to (select from Entity where id = '"+edge+"')")
-      for edge in element['inherits']:
-        print("create edge Inheritance from (select from Entity where id = '"+element['id']+"') to (select from Entity where id = '"+edge+"')")
-        self.client.command("create edge Inheritance from (select from Entity where id = '"+element['id']+"') to (select from Entity where id = '"+edge+"')")
-      for edge in element['references']:
-        print("create edge Reference from (select from Entity where id = '"+element['id']+"') to (select from Entity where id = '"+edge+"')", edge, element)
-        self.client.command("create edge Reference from (select from Entity where id = '"+element['id']+"') to (select from Entity where id = '"+edge+"')")
-    self.client.db_close()
 
   def parseXML(self, xmlFile):
+    #this is a stack we maintain when traversing the xml tree
     attribute_stack = []
-    attributes = {}
+
+    #after we decide something should be a vertex we add it to the vertex list
     vertices = []
+
+    # a list of the vertices names (which could also be derived from vertices)
+    #     so we know what OrientDB classes to create
     verticesNames = []
-    edges = {}
+
+    #the two types of edges
+    containmentEdges = []
+    referenceEdges = []
 
     for event, elem in etree.iterparse(xmlFile, events=('start', 'end')):
+      # at the beginning, add everything on the stack
+      # the event can contain attributes eg:<QoSPolicy ID="GR1_to_TA1_MissionSLP"> (in which case we want to get them) 
+      #      or not <TestMission>
       if event == 'start':
         item = {}
         item[elem.tag] = elem.text
         for el in elem.attrib.keys():
           item[el]=elem.attrib[el]
         attribute_stack.append({elem.tag:item})
+
+        # the hardest part is at the end 
+        # we are trying to decide if the event closed out a vertex or something that should be an attribute of a vertex
+        # eg:
+        ''' <TestMission>
+               <Name>Test Mission 1</Name>
+               <Description>Test Mission 1: Frequency change</Description>
+               <TmNSCompleteness>true</TmNSCompleteness>
+               <TmNSCompletenessDescription>Complete</TmNSCompletenessDescription>
+            </TestMission>
+        '''  
+        # in this example the algoritm should detect that TestMission should be a vertex
+        # and Name, Description, TmNSCompleteness, TmNSCompletenessDescription should be attributes of TestMission 
       elif event == 'end':
-        #print 'at: ',attribute_stack[-1], len(attribute_stack)
+        
+        print attribute_stack
+
+        #if the last attribute on the stack contains more than one thing, it's a vertex
         if len(attribute_stack[-1][attribute_stack[-1].keys()[0]].keys())>1:
-          attribute_stack[-1][attribute_stack[-1].keys()[0]].pop(attribute_stack[-1].keys()[0])
+          try:
+            attribute_stack[-1][attribute_stack[-1].keys()[0]].pop(attribute_stack[-1].keys()[0])
+          except:
+            pass
+          
           a = attribute_stack.pop()
+          
+          #if it doesn't have a unique identifier, will assign and also assign uid for the parent
+          if 'uid' not in a[a.keys()[0]].keys():
+            a[a.keys()[0]]['uid'] = self.assignUniqueId(a.keys()[0])
+          try:
+            if 'uid' not in attribute_stack[-1][attribute_stack[-1].keys()[0]].keys():
+              attribute_stack[-1][attribute_stack[-1].keys()[0]]['uid']=self.assignUniqueId(attribute_stack[-1].keys()[0])
+          except:
+            pass
+
+          #adding to the vertices list
+          print "aa",a
           vertices.append(a)
           verticesNames.append(a.keys()[0])
-          #print "here: ", vertices
           try:
-            #attribute_stack[-2][attribute_stack[-2].keys()[0]]['0'] = 0
+            
+            #creating a containment edge
+            containmentEdges.append([a[a.keys()[0]]['uid'], attribute_stack[-1][attribute_stack[-1].keys()[0]]['uid']])
+          except:
+            pass
+
+          try:
             attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
           except:
             print "Unexpected error:", sys.exc_info()[0]
+        
+        # if it doesn't contain more than one thing, it's an attribute and will need to add it to the vertex right above on the stack
         else:
           try:
+            try:
+              attribute_stack[-1][attribute_stack[-1].keys()[0]].pop(attribute_stack[-1].keys()[0])
+            except:
+              pass
             attribute_stack[-2][attribute_stack[-2].keys()[0]]=dict(attribute_stack[-2][attribute_stack[-2].keys()[0]].items()+attribute_stack[-1][attribute_stack[-1].keys()[0]].items())
-            attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
+            if 'uid' not in attribute_stack[-2][attribute_stack[-2].keys()[0]].keys():
+              attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
           except:
             print "Unexpected error:", sys.exc_info()[0]
           attribute_stack.pop()
     i = 0
-    print 'hootay'
-    print
-    '''while i < len(vertices):
-      try:
-        #vertices[i][vertices[i].keys()[0]].pop('0')
-        print vertices[i]
-      except:
-        pass
-      i+=1'''
-    print set(verticesNames)
+
     orientdbRestrictedIdentifier = []
     for s in set(verticesNames):
       try:
         self.client.command( "create class "+s+" extends V" )
       except:
          self.client.command( "create class "+s+"_a extends V" )
+         
+         #certain names are reserved keywords in orientdb eg: Limit, so we need to do things a little different
          orientdbRestrictedIdentifier.append(s)
 
       print  "create class "+s+" extends V"
     
+    
+    #this is the part where we add the vertices one by one to orientdb 
     for e in vertices:
+      print e
       try:
         columns = ''
         values = '' 
@@ -122,12 +147,27 @@ class Processor(object):
           classToInsertInto += '_a'
         self.client.command( "insert into "+ classToInsertInto +" ("+columns+") values ("+ values+")")
         print  "insert into "+ e.keys()[0]+" ("+columns+") values ("+ values+")"
-        self.client.command('commit')
+        #self.client.command('commit')
         #self.client.command( "insert into "+e.keys()[0] )
       except:
+        print "Unexpected error:", sys.exc_info()[0]
+        print "insert into "+ e.keys()[0]+" ("+columns+") values ("+ values+")"
+        
+    
+    self.client.command( "create class Containment extends E" )
+    #adding containment edges
+    for edge in containmentEdges:
+      print  "create edge Containment from (SELECT FROM V WHERE uid = '"+edge[0]+"') TO (SELECT FROM V WHERE uid = '"+edge[1]+"')"
+      try:
+        self.client.command( "create edge Containment from (SELECT FROM V WHERE uid = '"+edge[0]+"') TO (SELECT FROM V WHERE uid = '"+edge[1]+"')")
+      except:
         pass
-  
 
+    self.client.command("create class Reference extends E")
+    print self.client.query("select distinct(IDREF) from V")
+    #for idref in idrefs:
+    #  print idref
+  
 
   def assignUniqueId(self, entityType):
     uniqId=''
@@ -159,6 +199,6 @@ if __name__ == "__main__":
     database = sys.argv[2]
     remotePlocal = sys.argv[3]
   else:
-    print('Not enough arguments. The script should be called as following: python serializer.py myXME.xme myOrientDbDatabase remote/plocal')
+    print('Not enough arguments. The script should be called as following: python serializerPyorientNew.py myXME.xme myOrientDbDatabase remote')
 
   main(xme_name, json_loader, database, remotePlocal)
