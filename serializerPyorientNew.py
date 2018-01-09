@@ -64,7 +64,7 @@ class Processor(object):
         # and Name, Description, TmNSCompleteness, TmNSCompletenessDescription should be attributes of TestMission 
       elif event == 'end':
         
-        print attribute_stack
+        #print attribute_stack
 
         #if the last attribute on the stack contains more than one thing, it's a vertex
         if len(attribute_stack[-1][attribute_stack[-1].keys()[0]].keys())>1:
@@ -74,18 +74,16 @@ class Processor(object):
             pass
           
           a = attribute_stack.pop()
-          
           #if it doesn't have a unique identifier, will assign and also assign uid for the parent
-          if 'uid' not in a[a.keys()[0]].keys():
+          if self.uidAlreadyAssigned(a)==0:
             a[a.keys()[0]]['uid'] = self.assignUniqueId(a.keys()[0])
           try:
-            if 'uid' not in attribute_stack[-1][attribute_stack[-1].keys()[0]].keys():
+            if self.uidAlreadyAssigned(attribute_stack[-1])==0:
               attribute_stack[-1][attribute_stack[-1].keys()[0]]['uid']=self.assignUniqueId(attribute_stack[-1].keys()[0])
           except:
             pass
 
           #adding to the vertices list
-          print "aa",a
           vertices.append(a)
           verticesNames.append(a.keys()[0])
           try:
@@ -96,24 +94,22 @@ class Processor(object):
             pass
 
           try:
-            attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
+            if self.uidAlreadyAssigned(attribute_stack[-2])==0:
+              attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
           except:
             print "Unexpected error:", sys.exc_info()[0]
         
         # if it doesn't contain more than one thing, it's an attribute and will need to add it to the vertex right above on the stack
         else:
           try:
-            try:
-              attribute_stack[-1][attribute_stack[-1].keys()[0]].pop(attribute_stack[-1].keys()[0])
-            except:
-              pass
-            attribute_stack[-2][attribute_stack[-2].keys()[0]]=dict(attribute_stack[-2][attribute_stack[-2].keys()[0]].items()+attribute_stack[-1][attribute_stack[-1].keys()[0]].items())
-            if 'uid' not in attribute_stack[-2][attribute_stack[-2].keys()[0]].keys():
-              attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
+            attribute_stack[-1][attribute_stack[-1].keys()[0]].pop(attribute_stack[-1].keys()[0])
           except:
-            print "Unexpected error:", sys.exc_info()[0]
+            pass
+          attribute_stack[-2][attribute_stack[-2].keys()[0]]=dict(attribute_stack[-2][attribute_stack[-2].keys()[0]].items()+attribute_stack[-1][attribute_stack[-1].keys()[0]].items())
+          if 'uid' not in attribute_stack[-2][attribute_stack[-2].keys()[0]].keys():
+            attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
           attribute_stack.pop()
-    i = 0
+   
 
     orientdbRestrictedIdentifier = []
     for s in set(verticesNames):
@@ -157,16 +153,25 @@ class Processor(object):
     self.client.command( "create class Containment extends E" )
     #adding containment edges
     for edge in containmentEdges:
-      print  "create edge Containment from (SELECT FROM V WHERE uid = '"+edge[0]+"') TO (SELECT FROM V WHERE uid = '"+edge[1]+"')"
+      #print  "create edge Containment from (SELECT FROM V WHERE uid = '"+edge[0]+"') TO (SELECT FROM V WHERE uid = '"+edge[1]+"')"
       try:
         self.client.command( "create edge Containment from (SELECT FROM V WHERE uid = '"+edge[0]+"') TO (SELECT FROM V WHERE uid = '"+edge[1]+"')")
       except:
-        pass
+        print "Unexpected error:", sys.exc_info()[0]
+        #print edge[0], edge[1]
 
     self.client.command("create class Reference extends E")
-    print self.client.query("select distinct(IDREF) from V")
-    #for idref in idrefs:
-    #  print idref
+    #print self.client.query("select distinct(IDREF) from V")
+
+    # for some stupid reason columns are case sensitive in orientdb
+    for idref in  self.client.query("select distinct(IDREF) as idref from V"):
+      print "create edge Reference from (select from V where IDREF='"+idref.idref+"') TO (select from V where ID='"+idref.idref+"')"
+      
+      # sometimes we have orphans so we need to escape them.
+      try:
+        self.client.command("create edge Reference from (select from V where IDREF='"+idref.idref+"') TO (select from V where ID='"+idref.idref+"')")
+      except:
+        pass
   
 
   def assignUniqueId(self, entityType):
@@ -177,6 +182,11 @@ class Processor(object):
       self.uniqueIdentifiers[entityType]=0
     uniqId = entityType + '-' + str(self.uniqueIdentifiers[entityType])
     return uniqId
+  
+  def uidAlreadyAssigned(self, element):
+    if 'uid' in  element[element.keys()[0]].keys():
+      return 1
+    return 0
     
 def main(xmlFile, json_loader, database, remotePlocal):
   processor=Processor('config.json')
