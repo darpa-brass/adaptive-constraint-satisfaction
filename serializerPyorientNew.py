@@ -73,13 +73,6 @@ class Processor(object):
         # in this example the algoritm should detect that TestMission should be a vertex
         # and Name, Description, TmNSCompleteness, TmNSCompletenessDescription should be attributes of TestMission 
       elif event == 'end':
-        
-        try:
-            if attribute_stack[-2].keys()[0]=='QoSPolicy':
-              pass #print 'at st',attribute_stack
-        except:
-          pass
-        # print attribute_stack
 
         #if the last attribute on the stack contains more than one thing, it's a vertex
         if len(attribute_stack[-1][attribute_stack[-1].keys()[0]].keys())>1:
