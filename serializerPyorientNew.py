@@ -55,7 +55,7 @@ class Processor(object):
       #      or not <TestMission>
       if event == 'start':
         item = {}
-        item[elem.tag] = elem.text
+        item[elem.tag] = elem.text if elem.text else ''
         for el in elem.attrib.keys():
           item[el]=elem.attrib[el]
         attribute_stack.append({elem.tag:item})
@@ -102,8 +102,9 @@ class Processor(object):
             pass
 
           try:
-            if self.uidAlreadyAssigned(attribute_stack[-2])==0:
-              attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
+            if len(attribute_stack) > 1:
+              if self.uidAlreadyAssigned(attribute_stack[-2])==0:
+                attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
           except:
             print "Unexpected error:", sys.exc_info()[0]
         
@@ -130,7 +131,7 @@ class Processor(object):
     
     #this is the part where we add the vertices one by one to orientdb 
     for e in vertices:
-      print e
+      #print e
       try:
         columns = ''
         values = '' 
@@ -145,6 +146,7 @@ class Processor(object):
         classToInsertInto = e.keys()[0]
         if classToInsertInto in orientdbRestrictedIdentifier:
           classToInsertInto += '_a'
+
         self.client.command( "insert into "+ classToInsertInto +" ("+columns+") values ("+ values+")")
         print  "insert into "+ e.keys()[0]+" ("+columns+") values ("+ values+")"
         #self.client.command('commit')
@@ -191,11 +193,15 @@ class Processor(object):
     if 'uid' in  element[element.keys()[0]].keys():
       return 1
     return 0
+
+  def closeDatabase(self):
+    self.client.db_close()
     
 def main(xmlFile, json_loader, database, remotePlocal):
   processor=Processor('config.json')
   processor.initDatabase(database)
   processor.parseXML(xmlFile)
+  processor.closeDatabase()
 
 def makeLoadrTemplate(loaderFileName, path, database):
   

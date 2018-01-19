@@ -17,7 +17,7 @@ class Processor(object):
     self.session_id = self.client.connect( self.username, self.password )
     self.client.db_open('yoBrass', 'admin', 'admin')
 
-  def closeDB(self):
+  def closeDatabase(self):
       self.client.db_close()
 
   def traverse(self, record):
@@ -25,12 +25,12 @@ class Processor(object):
 
     #print "select from (traverse in ('Containment') from {0} while $depth < 2) where @rid != {0}".format(record._rid)
     for v in self.client.command("select from (traverse in ('Containment') from {0} while $depth < 2) where @rid != {0}".format(record._rid)):
-      #print v
       self.traverse(v)
 
-    # select from (traverse out ('Containment') from #109:0 while $depth < 2)
 
-  # helper query functions
+  '''
+  helper query functions
+  '''
   def getNodeByClass(self, vertexTypeName):
     #print "Select from V where @class='{0}'".format(vertexTypeName)
     return self.client.command("Select from V where @class='{0}'".format(vertexTypeName))
@@ -39,10 +39,12 @@ class Processor(object):
   def getNodeByProperty(self, propertyName, propertyValue):
     #print "select from V where {0}='{1}'".format(propertyName, propertyValue)
     return self.client.command("select from V where {0}='{1}'".format(propertyName, propertyValue))
-  # helper query functions
 
 
-  # print functions
+
+  '''
+  orientDB record print function
+  '''
   def printOrientRecord(self, record):
       recordStr = []
       for key in record.oRecordData.keys():
@@ -52,16 +54,19 @@ class Processor(object):
 
 
   def runExample(self):
-    for v in self.getNodeByProperty('uid', 'MDLRoot-0'):
-        self.traverse(v)
-    #for v in self.getNodeByClass('MDLRoot'):
-    #    print v
+    try:
+      for v in self.getNodeByProperty('uid', 'MDLRoot-0'):
+          self.traverse(v)
+      #for v in self.getNodeByClass('MDLRoot'):
+      #    print v
+    except:
+      print "Unexpected error:", sys.exc_info()[0]
 
 
 def main(database, remotePlocal):
   processor=Processor(database)
   processor.runExample()
-  processor.closeDB()
+  processor.closeDatabase()
 
 
 
