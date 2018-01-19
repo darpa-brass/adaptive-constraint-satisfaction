@@ -18,11 +18,21 @@ class Processor(object):
     self.session_id = self.client.connect( self.username, self.password )
     self.loadrObject = []
     self.uniqueIdentifiers = {}
+    self.db_username = None
+    self.db_password = None
+    if 'database' in config_data:
+      if 'username' in config_data['database'] and 'password' in config_data['database']:
+        self.db_username = config_data['database']['username']
+        self.db_password = config_data['database']['password']
+
 
   def initDatabase(self, database):
     if self.client.db_exists( database):
       self.client.db_drop( database )
     self.client.db_create( database, pyorient.DB_TYPE_GRAPH)
+
+    if self.db_password != None and self.db_username != None:
+      self.client.command( "create user {0} identified by {1} role [writer,reader]".format(self.db_username, self.db_password) )
 
   def parseXML(self, xmlFile):
     #this is a stack we maintain when traversing the xml tree
@@ -64,7 +74,12 @@ class Processor(object):
         # and Name, Description, TmNSCompleteness, TmNSCompletenessDescription should be attributes of TestMission 
       elif event == 'end':
         
-        #print attribute_stack
+        try:
+            if attribute_stack[-2].keys()[0]=='QoSPolicy':
+              pass #print 'at st',attribute_stack
+        except:
+          pass
+        # print attribute_stack
 
         #if the last attribute on the stack contains more than one thing, it's a vertex
         if len(attribute_stack[-1][attribute_stack[-1].keys()[0]].keys())>1:
@@ -72,7 +87,7 @@ class Processor(object):
             attribute_stack[-1][attribute_stack[-1].keys()[0]].pop(attribute_stack[-1].keys()[0])
           except:
             pass
-          
+                      
           a = attribute_stack.pop()
           #if it doesn't have a unique identifier, will assign and also assign uid for the parent
           if self.uidAlreadyAssigned(a)==0:
@@ -101,11 +116,7 @@ class Processor(object):
         
         # if it doesn't contain more than one thing, it's an attribute and will need to add it to the vertex right above on the stack
         else:
-          try:
-            attribute_stack[-1][attribute_stack[-1].keys()[0]].pop(attribute_stack[-1].keys()[0])
-          except:
-            pass
-          attribute_stack[-2][attribute_stack[-2].keys()[0]]=dict(attribute_stack[-2][attribute_stack[-2].keys()[0]].items()+attribute_stack[-1][attribute_stack[-1].keys()[0]].items())
+          attribute_stack[-2][attribute_stack[-2].keys()[0]]=dict(attribute_stack[-2][attribute_stack[-2].keys()[0]].items()+attribute_stack[-1][attribute_stack[-1].keys()[0]].items())          
           if 'uid' not in attribute_stack[-2][attribute_stack[-2].keys()[0]].keys():
             attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(attribute_stack[-2].keys()[0])
           attribute_stack.pop()
