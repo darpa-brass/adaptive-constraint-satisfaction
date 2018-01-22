@@ -1,17 +1,17 @@
 """
+mdlExporter.py
 
-example_traverse_print.py
+Traverses an orientDB database and exports the information
+to an MDL xml file.
 
-This program contains code to grab the root MDL vertex (MDLRoot) in an orientDB database
-then perform a depth-first traversal using "Containment" type of edges from the root vertex.
-Each vertex's name and its properties are printed out during the traversal.
-
-TODO: Add traversal of "Reference" type of edges.
+Note:   Only "Containment" type of edges are used in the exporter.
+        The "Reference" edge is not needed since the XML needs
+        IDREF attribute that is already a property of a vertex
+        (RadioLinkRef, SourceRadioRef, DestinationGroupRadioRef vertices).
 
 Author: Di Yao (di.yao@vanderbilt.edu)
 
 """
-
 
 from lxml import etree
 import os
@@ -38,6 +38,10 @@ class Processor(object):
                 self.db_username = config_data['database']['username']
                 self.db_password = config_data['database']['password']
 
+        self.xmlFile = open(databaseName +'_Exported_MDL.xml', 'w')
+        self.property2Skip = ['uid', 'ID', 'IDREF', 'in_Containment', 'out_Containment', 'in_Reference', 'out_Reference']
+
+
     def openDatabase(self):
         """
         Opens the orientDB database.
@@ -46,6 +50,7 @@ class Processor(object):
         """
 
         self.client.db_open(self.db_name, self.db_username, self.db_password)
+
 
     def closeDatabase(self):
         """
@@ -56,22 +61,33 @@ class Processor(object):
 
         self.client.db_close()
 
-    def traverse(self, record):
-      """
-      Recursively traverses a vertex via the Containment type of edges.
-      :argument:
-                    record (OrientRecord):      an orientDB record containing data about a vertex
-      :return:
-      """
-      self.printOrientRecord(record)
+    def printNode(self, record, numberTabs):
+        """
+        Calls printOrientRecord() on a vertex to convert its data
+        to xml and write to a file.
+        Recursively calls printNode on child vertices via "Containment" edge.
+        Closing xml tag is written in this function because closing tag needs
+        to come after all child xml elments have been written to file.
 
-      #print "select from (traverse in ('Containment') from {0} while $depth < 2) where @rid != {0}".format(record._rid)
-      for v in self.client.command("select from (traverse in ('Containment') from {0} while $depth < 2) where @rid != {0}".format(record._rid)):
-          self.traverse(v)
+        :argument:
+                    record (OrientRecord):  an orientDB record containing data about a vertex
+                    numberTabs (int):       number of tabs to indent before xml text
+        :return:
+        """
 
-    '''
-      helper query functions
-    '''
+        self.printOrientRecord(record, numberTabs)
+
+        #print "select from (traverse in ('Containment') from {0} while $depth < 2) where @rid != {0}".format(record._rid)
+        for v in self.client.command("select from (traverse in ('Containment') from {0} while $depth < 2) where @rid != {0}".format(record._rid)):
+            self.printNode(v, numberTabs+1)
+
+        # write out closing xml tag
+        self.xmlFile.write('{0}</{1}>\n'.format(self.createTabString(numberTabs), record._class))
+
+
+    """
+    helper query functions
+    """
     def getNodeByClass(self, vertexTypeName):
         """
         Retrieves vertices of a specific type from orientDB database.
@@ -103,44 +119,70 @@ class Processor(object):
 
         #print "select from V where {0}='{1}'".format(propertyName, propertyValue)
         return self.client.command("select from V where {0}='{1}'".format(propertyName, propertyValue))
+    """"""
 
 
-
-    '''
+    """
     orientDB record print function
-    '''
-    def printOrientRecord(self, record):
+    """
+    def printOrientRecord(self, record, numberTabs):
         """
-        Prints a OrientRecord returned by orientDB query.
+        Serializes OrientRecord to xml for a vertex and writes to the xml file.
+        Serialization involves traversing through a vertex's properties.
+        Opening xml tag is written in this function because "ID" and "IDREF"
+        properties need to be written out as xml attributes and not as xml tag text.
+
 
         :argument:
-                    record (OrientRecord):  an orientDB record containg vertex information
+                    record (OrientRecord):  an orientDB record containing data about a vertex
+                    numberTabs (int):       number of tabs to indent before xml text
         :return:
+
         """
 
-        recordStr = []
+        self.xmlFile.write( "{0}<{1}".format(self.createTabString(numberTabs), record._class) )
+
+        if 'ID' in record.oRecordData.keys():
+            self.xmlFile.write(' {0}="{1}"'.format('ID', record.oRecordData['ID']) )
+        elif 'IDREF' in record.oRecordData.keys():
+            self.xmlFile.write(' {0}="{1}"'.format('IDREF', record.oRecordData['IDREF']) )
+
+        self.xmlFile.write( ">\n" )
+
         for key in record.oRecordData.keys():
-            if 'Containment' not in key and 'Reference' not in key:
-                recordStr.append('{0}:{1} '.format(key, record.oRecordData[key]))
-        print "{0}                    {1}".format(record._class, str(recordStr))
+            if key not in self.property2Skip:
+                self.xmlFile.write( '{0}<{1}>{2}</{1}>\n'.format( self.createTabString(numberTabs+1), key, record.oRecordData[key] ) )
 
 
-    def runExample(self):
+    """ Print formatting functions """
+    def createTabString(self, numberTabs):
+        s = ''
+        i = 1
+        while i <= numberTabs:
+            s += '\t'
+            i += 1
+        return s
+
+    """"""
+
+    def exportToMDL(self):
         """
         Retrieves the root vertex in the database.
-        Calls the example traverse function on the root vertex.
+        Calls the printNode function on the root vertex to
+        traverse and print xml of child vertices to a file.
 
         :argument:
         :return:
         """
 
         try:
-            for v in self.getNodeByProperty('uid', 'MDLRoot-0'):
-                self.traverse(v)
-            #for v in self.getNodeByClass('MDLRoot'):
-            #    print v
+          for v in self.getNodeByProperty('uid', 'MDLRoot-0'):
+              self.printNode(v, 0)
+          #for v in self.getNodeByClass('MDLRoot'):
+          #    print v
         except:
-            print "Unexpected error:", sys.exc_info()[0]
+          print "Unexpected error:", sys.exc_info()[0]
+
 
 
 def main(database, remotePlocal):
@@ -154,11 +196,11 @@ def main(database, remotePlocal):
                 remotePlocal (str): remote or local database, not used currently
     :return:
     """
-    processor=Processor(database)
 
     try:
+        processor=Processor(database)
         processor.openDatabase()
-        processor.runExample()
+        processor.exportToMDL()
         processor.closeDatabase()
     except:
         print "Unexpected error:", sys.exc_info()[0]
@@ -170,6 +212,6 @@ if __name__ == "__main__":
         database = sys.argv[1]
         remotePlocal = sys.argv[2]
     else:
-        print('Not enough arguments. The script should be called as following: python example_simple.py myOrientDbDatabase remote')
+        print('Not enough arguments. The script should be called as following: python mdlExporter.py myOrientDbDatabase remote')
 
     main(database, remotePlocal)
