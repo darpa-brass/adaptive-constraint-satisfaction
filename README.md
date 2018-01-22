@@ -32,8 +32,9 @@
 2) Open config.json and fill out "username" and "password" under server and database sections with your credentials.
 
 3) python script_name.py databaseName remote
-
-python example_traverse_print.py yoBrass remote
-python mdlExporter.py yoBrass remote
-python serializerPyorientNew.py yoBrass remote
+```
+	python example_traverse_print.py yoBrass remote
+	python mdlExporter.py yoBrass remote
+	python serializerPyorientNew.py yoBrass remote
+```
 
