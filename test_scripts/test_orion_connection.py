@@ -97,6 +97,6 @@ if __name__ == "__main__":
         database = sys.argv[1]
         remotePlocal = sys.argv[2]
     else:
-        print('Not enough arguments. The script should be called as following: python test_db_connection.py myOrientDbDatabase remote')
+        print('Not enough arguments. The script should be called as following: python test_orion_connection.py myOrientDbDatabase remote')
 
     main(database, remotePlocal)
