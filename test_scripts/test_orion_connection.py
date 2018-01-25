@@ -1,12 +1,10 @@
 """
 
-example_traverse_print.py
+test_orion_connection.py
 
-This program contains code to grab the root MDL vertex (MDLRoot) in an orientDB database
-then perform a depth-first traversal using "Containment" type of edges from the root vertex.
-Each vertex's name and its properties are printed out during the traversal.
+This program tests connection to the orion server and
+connection to a database on orion.
 
-TODO: Add traversal of "Reference" type of edges.
 
 Author: Di Yao (di.yao@vanderbilt.edu)
 

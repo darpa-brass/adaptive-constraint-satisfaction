@@ -18,11 +18,13 @@
 
 1) config.json - Contains configuration data for connecting to the Orion orientDB server and database.
 
-2) example_traverse_print.py - Provides a simple example that shows how to do a depth-first traversal of a MDL database in orientDB.
+2) example_custom_data_structure.py - Provides an example of a custom class to save query results. 
 
-3) mdlExporter.py - Use this script to export an orientDB database to a MDL xml file.
+3) example_traverse_print.py - Provides a simple example that shows how to do a depth-first traversal of a MDL database in orientDB.
 
-4) serializerPyorientNew.py - Use this script to export a MDL xml file to an orientDB database. 
+4) mdlExporter.py - Use this script to export an orientDB database to a MDL xml file.
+
+5) serializerPyorientNew.py - Use this script to export a MDL xml file to an orientDB database. 
 
 
 ### Steps to run the scripts
