@@ -31,10 +31,8 @@ class BrassOrientDBClient(object):
                 self._db_password = configMap['database']['password']
 
         self._client = pyorient.OrientDB( configMap['server']['address'], configMap['server']['port'] )
-        self._session_id = None
 
-
-    def connectToServer(self):
+        # connect to orion server
         self._session_id = self._client.connect( self._server_username, self._server_password )
 
 
@@ -60,7 +58,6 @@ class BrassOrientDBClient(object):
 
     def runCommand(self, query_str):
         return self._client.command(query_str)
-
 
 
 '''
