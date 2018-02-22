@@ -12,6 +12,7 @@ import os
 import sys
 import json
 import pyorient
+from brass_exceptions import BrassException
 
 class BrassOrientDBClient(object):
     def __init__(self, databaseName, configFile = 'config.json'):
@@ -33,7 +34,10 @@ class BrassOrientDBClient(object):
         self._client = pyorient.OrientDB( configMap['server']['address'], configMap['server']['port'] )
 
         # connect to orion server
-        self._session_id = self._client.connect( self._server_username, self._server_password )
+        try:
+            self._session_id = self._client.connect( self._server_username, self._server_password )
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBClient.__init__')
 
 
     def openDatabase(self):
@@ -43,8 +47,10 @@ class BrassOrientDBClient(object):
         :return:
         """
 
-        self._client.db_open(self._db_name, self._db_username, self._db_password)
-
+        try:
+            self._client.db_open(self._db_name, self._db_username, self._db_password)
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBClient.openDatabase')
 
     def closeDatabase(self):
         """
@@ -53,7 +59,10 @@ class BrassOrientDBClient(object):
         :return:
         """
 
-        self._client.db_close()
+        try:
+            self._client.db_close()
+        except:
+            raise BrassOrientDBClient(sys.exc_info()[1], 'BrassOrientDBClient.closeDatabase')
 
 
     def runCommand(self, query_str):
@@ -67,8 +76,8 @@ def test(database):
     try:
         orient_client = BrassOrientDBClient(database)
         print "Successfully created Brass OrientDB Query Helper"
-    except:
-        print "Unexpected error - connecting to database:", sys.exc_info()[1]
+    except BrassException as e:
+        print e
         exit(1)
 
 
