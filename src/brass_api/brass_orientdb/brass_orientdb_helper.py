@@ -106,7 +106,7 @@ class BrassOrientDBHelper(object):
         query_sql = ['traverse']
         if 'direction' in kwargs:
             if 'edgetype' in kwargs:
-                query_sql.append('{0}({1})'.format(kwargs['direction'], kwargs['edgetype']))
+                query_sql.append("{0}('{1}')".format(kwargs['direction'], kwargs['edgetype']))
 
         query_sql.append('from')
         query_sql.append(target)
@@ -182,7 +182,10 @@ class BrassOrientDBHelper(object):
 
         #sql command
         #select from (traverse in('Containment') from #109:0 maxdepth 1) where $depth >=1
-        #print BrassOrientDBHelper.select_sql( BrassOrientDBHelper.traverse_sql(targetNode_rid, direction=direction, edgetype=edgetype, maxdepth=maxdepth), filterdepth_condition)
+        #print BrassOrientDBHelper.select_sql(
+        #    BrassOrientDBHelper.traverse_sql(targetNode_rid, direction=direction, edgetype=edgetype, maxdepth=maxdepth),
+        #    filterdepth_condition
+        #)
 
 
         try:
