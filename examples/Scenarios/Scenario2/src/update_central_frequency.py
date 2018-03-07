@@ -1,18 +1,17 @@
 """
 
-example_traverse_print.py
+update_central_frequency.py
 
-This program contains code to grab the root MDL vertex (MDLRoot) in an orientDB database
-then perform a depth-first traversal using "Containment" type of edges from the root vertex.
-Each vertex's name and its properties are printed out during the traversal.
+This program contains code to grab the TxOp nodes from an orientDB database
+and update each of the TxOp CentralFrequencyHz properties based on a
+requirement to change the CentralFrequency
 
-TODO: Add traversal of "Reference" type of edges.
-
-Author: Di Yao (di.yao@vanderbilt.edu), Joseph Hite (joseph.e.hite@vanderbilt.edu)
+Author: Joseph Hite (joseph.e.hite@vanderbilt.edu)
 
 """
 
 import sys
+import os
 
 sys.path.append('src')
 from brass_api.brass_orientdb.brass_orientdb_helper import BrassOrientDBHelper
@@ -90,7 +89,6 @@ def main(database=None, config_file=None):
     for node in TxOp_nodes:
         print node
 
-    reset_orientdb_central_fq(processor)
     processor.close_database()
 
 
@@ -100,5 +98,6 @@ if __name__ == "__main__":
         config_file = sys.argv[2]
     else:
         sys.exit(
-            'Not enough arguments. The script should be called as following: python example_simple.py myOrientDbDatabase remote')
+            'Not enough arguments. The script should be called as following: '
+            'python {0} <OrientDbDatabase> <config file>'.format(os.path.basename(__file__)))
     main(database, config_file)
