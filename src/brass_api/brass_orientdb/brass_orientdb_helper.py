@@ -4,7 +4,7 @@ import json
 
 from brass_orientdb_client import BrassOrientDBClient
 from brass_exceptions import BrassException
-
+from orientdb_sql import *
 
 
 class BrassOrientDBHelper(object):
@@ -22,124 +22,9 @@ class BrassOrientDBHelper(object):
         self._orientdb_client.close_database()
 
 
-    @staticmethod
-    def condition_str(lh, rh, op='='):
-        '''
-        Creates a conditional string for queries in the form of:
-        lh op rh
 
 
-        :param lh: left hand side of the condition
-        :param rh: right hand side of the condition
-        :param op: logical operator
-        :return: string
-                    name = 'Clark'
-        '''
-        if lh == 'rid' or lh == 'class':
-            return "@{0}{1}'{2}'".format(lh, op, rh)
-        else:
-            return "{0}{1}'{2}'".format(lh, op, rh)
-
-
-    @staticmethod
-    def select_sql(target, *args):
-        '''
-        Creates a select sql string based on the passed in parameters.
-        Select queries a database for records (vertices) based on some conditions.
-
-        :param target:  can be rid or class name or V (for vertex class)
-        :param args:    list of conditions for the query
-        :return:        sql string
-        '''
-        query_sql = ['select']
-        query_sql.append('from')
-
-        if 'traverse' in target:
-            query_sql.append('({0})'.format(target))
-        else:
-            query_sql.append(target)
-
-        if len(args) > 0:
-            query_sql.append('where')
-            query_sql.append(' and '.join(args))
-
-        return ' '.join(query_sql)
-
-    """
-    @staticmethod                                                  
-    def form_conditionals(**kwargs):                               
-        condition_list = []                                        
-        for key, value in kwargs.items():                          
-           condition_list.append('@{0}="{1}"'.format(key, value)) 
-        return ' and '.join(condition_list)                        
-    
-    
-    @staticmethod
-    # target can be rid or class name or V (for vertex class)
-    def select(target, **kwargs):
-        query_sql = ['select']
-        query_sql.append('from')
-
-        if 'traverse' in target:
-            query_sql.append('({0})'.format(target))
-        else:
-            query_sql.append(target)
-
-        if len(kwargs) > 0:
-            query_sql.append('where')
-            query_sql.append(''.join(BrassOrientDBHelper.form_conditionals(**kwargs)))
-
-        return ' '.join(query_sql)
-    """
-
-    @staticmethod
-    def traverse_sql(target, **kwargs):
-        '''
-        Creates a traverse sql string based passed in parameters.
-        Traverse retrieves connected records(vertices) crossing relationships(edges).
-
-        :param target:  can be rid or class name
-        :param kwargs:  list of traverse conditions
-        :return:        sql string
-        '''
-
-        query_sql = ['traverse']
-        if 'direction' in kwargs:
-            if 'edgetype' in kwargs:
-                query_sql.append("{0}('{1}')".format(kwargs['direction'], kwargs['edgetype']))
-
-        query_sql.append('from')
-        query_sql.append(target)
-
-        if 'maxdepth' in kwargs:
-            query_sql.append('maxdepth {0}'.format(kwargs['maxdepth']))
-        if 'strategy' in kwargs:
-            query_sql.append('strategy {0}'.format(kwargs['strategy']))
-
-        return ' '.join(query_sql)
-
-
-    @staticmethod
-    def update_sql(target, *argv):
-        '''
-        Updates the properties of a database record/vertex.
-
-        :param target:  rid of the record/vertex to update
-        :param argv:    List of properties to modify on the record/vertex.
-                        OrientDB will create the property if it doesn't already exist.
-        :return:        sql string
-        '''
-        query_sql = ['update']
-        query_sql.append(target)
-
-        if len(argv) > 0:
-            query_sql.append('set')
-            query_sql.append( ', '.join(argv))
-
-        return ' '.join(query_sql)
-
-
-    def get_nodes(self, targetNode_rid, direction='in', edgetype='Containment', maxdepth=1, filterdepth=None, strategy='DEPTH_FIRST'):
+    def get_connected_nodes(self, targetNode_rid, direction='in', edgetype='Containment', maxdepth=1, filterdepth=None, strategy='DEPTH_FIRST'):
         '''
         Traverse and retrieve all records/vertices connected to the target record/vertices by the
         egdge/relationship set by "edgetype". Traversal depth is set by "maxdepth".
@@ -172,26 +57,26 @@ class BrassOrientDBHelper(object):
             return None
 
         if filterdepth > maxdepth:
-            print "[WARNING] filterdepth is greater than maxdepth. No results will be returned from query. [SOURCE] BrassOrientDBHelper.get_nodes"
+            print "[WARNING] filterdepth is greater than maxdepth. No results will be returned from query. [SOURCE] BrassOrientDBHelper.get_connected_nodes"
             return None
 
         if filterdepth is None:
-            filterdepth_condition = BrassOrientDBHelper.condition_str(lh='$depth', rh=0, op='>')
+            filterdepth_condition = condition_str(lh='$depth', rh=0, op='>')
         else:
-            filterdepth_condition = BrassOrientDBHelper.condition_str(lh='$depth', rh=filterdepth)
+            filterdepth_condition = condition_str(lh='$depth', rh=filterdepth)
 
         #sql command
         #select from (traverse in('Containment') from #109:0 maxdepth 1) where $depth >=1
-        #print BrassOrientDBHelper.select_sql(
-        #    BrassOrientDBHelper.traverse_sql(targetNode_rid, direction=direction, edgetype=edgetype, maxdepth=maxdepth),
+        #print select_sql(
+        #    traverse_sql(targetNode_rid, direction=direction, edgetype=edgetype, maxdepth=maxdepth),
         #    filterdepth_condition
         #)
 
 
         try:
             return self._orientdb_client.run_command(
-                 BrassOrientDBHelper.select_sql(
-                 BrassOrientDBHelper.traverse_sql(targetNode_rid, direction=direction, edgetype=edgetype, maxdepth=maxdepth),
+                 select_sql(
+                 traverse_sql(targetNode_rid, direction=direction, edgetype=edgetype, maxdepth=maxdepth),
                  filterdepth_condition
                  )
              )
@@ -214,11 +99,11 @@ class BrassOrientDBHelper(object):
 
         #sql command
         # select from TestMissions => where 'TestMissions' is the type
-        #print BrassOrientDBHelper.select_sql(type)
+        #print select_sql(type)
 
         try:
             return self._orientdb_client.run_command(
-             BrassOrientDBHelper.select_sql(type)
+             select_sql(type)
             )
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_nodes_by_type')
@@ -234,11 +119,11 @@ class BrassOrientDBHelper(object):
 
         # sql command
         #select from V where @rid=#93:0
-        #print BrassOrientDBHelper.select_sql('V', BrassOrientDBHelper.condition_str('rid', targetNode_rid))
+        #print select_sql('V', condition_str('rid', targetNode_rid))
 
         try:
             return self._orientdb_client.run_command(
-                BrassOrientDBHelper.select_sql('V', BrassOrientDBHelper.condition_str('rid', targetNode_rid))
+                select_sql('V', condition_str('rid', targetNode_rid))
             )
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_node_by_rid')
@@ -255,10 +140,14 @@ class BrassOrientDBHelper(object):
         :param edgetype:        edge type
         :return:                None or orientdb record objects
         '''
-        if targetNode_rid is None:
-            return None
 
-        return self.get_nodes(targetNode_rid, maxdepth=1, filterdepth=1, direction='in', edgetype=edgetype)
+        try:
+            if targetNode_rid is None:
+                return None
+
+            return self.get_connected_nodes(targetNode_rid, maxdepth=1, filterdepth=1, direction='in', edgetype=edgetype)
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_child_nodes')
 
 
     def get_parent_nodes(self, targetNode_rid, edgetype='Containment'):
@@ -273,14 +162,46 @@ class BrassOrientDBHelper(object):
         :return:                None or orientdb record objects
         '''
 
-        if targetNode_rid is None:
-            return None
+        try:
+            if targetNode_rid is None:
+                return None
 
-        #sql command
-        #select from (traverse out('Containment') from #109:0 maxdepth 1) where $depth >=1
-        #print BrassOrientDBHelper.select_sql( BrassOrientDBHelper.traverse_sql(targetNode_rid, direction='out', edgetype=edgetype, maxdepth=maxdepth), BrassOrientDBHelper.condition_str(lh='$depth', rh=1, op='>='))
+            #sql command
+            #select from (traverse out('Containment') from #109:0 maxdepth 1) where $depth >=1
+            #print select_sql( traverse_sql(targetNode_rid, direction='out', edgetype=edgetype, maxdepth=maxdepth), condition_str(lh='$depth', rh=1, op='>='))
 
-        return self.get_nodes(targetNode_rid, maxdepth=1, filterdepth=1, direction='out', edgetype=edgetype)
+            return self.get_connected_nodes(targetNode_rid, maxdepth=1, filterdepth=1, direction='out', edgetype=edgetype)
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_parent_nodes')
+
+    def get_reference_nodes(self, targetNode_rid):
+        '''
+        Retrieves all the nodes that references targetNode_rid.
+
+        :param targetNode_rid:
+        :return:
+        '''
+
+        try:
+            return self.get_connected_nodes(targetNode_rid, maxdepth=1, filterdepth=1, direction='in', edgetype='Reference')
+
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_reference_nodes')
+
+
+    def get_referent_node(self, targetNode_rid=None):
+        '''
+        Retrieves the node that targetNode_rid refers to.
+
+        :param targetNode_rid:
+        :return:
+        '''
+
+        try:
+            return self.get_connected_nodes(targetNode_rid, maxdepth=1, filterdepth=1, direction='out', edgetype='Reference')
+
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_referent_node')
 
 
     def update_node(self, targetNode_rid, *args):
@@ -295,16 +216,115 @@ class BrassOrientDBHelper(object):
         '''
 
         #sql command
-        #print BrassOrientDBHelper.update_sql(targetNode_rid, *args)
+        #print update_sql(targetNode_rid, *args)
 
         try:
             self._orientdb_client.run_command(
-             BrassOrientDBHelper.update_sql(targetNode_rid, *args)
+             update_sql(targetNode_rid, *args)
             )
             return True
 
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.update_node')
+
+
+    #def create_node(self, type, **properties):
+    #    try:
+    #        #self._orientdb_client.run_command(create_v_sql(type, properties))
+    #    except:
+    #        raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.add_node')
+
+
+
+    def delete_node_by_rid(self, rid=None):
+        #delete vertex rid
+        try:
+            if len(self.get_node_by_rid(rid)) == 0:
+                print '[ERROR] Unable to delete node {0} because it does not exist in the database [SOURCE] {1}'.\
+                    format(rid, 'BrassOrientDBHelper.delete_node_by_rid')
+                return False
+            else:
+                return self._orientdb_client.run_command( delete_v_sql(rid) )
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.delete_node_by_rid')
+
+
+    def delete_nodes_by_rid(self, rid_list):
+        status = True
+        try:
+            # unfortunately the delete vertex command in orientdb doesn't let you delete a list of rids
+            for r in rid_list:
+                if not self.delete_node_by_rid(r):
+                    status = False
+            return status
+
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.delete_nodes_by_rid')
+
+    def set_containment_relationship (self, parent_rid, child_rid, parent_query=None, child_query=None):
+        src = None
+        dst = None
+
+        if parent_rid is not None:
+            dst = parent_rid
+        else:
+            dst = parent_query
+
+        if child_rid is not None:
+            src = child_rid
+        else:
+            src = child_query
+
+        if src is not None and dst is not None:
+            return self._orientdb_client.run_command ( create_edge_sql('Containment', src, dst) )
+        else:
+            return False
+
+    def set_reference_relationship (self, reference_rid, referent_rid, reference_query=None, referent_query=None):
+        src = None
+        dst = None
+
+        if referent_rid is not None:
+            dst = referent_rid
+        else:
+            dst = referent_query
+
+        if reference_rid is not None:
+            src = reference_rid
+        else:
+            src = reference_query
+
+        if src is not None and dst is not None:
+            return self._orientdb_client.run_command ( create_edge_sql('Reference', src, dst) )
+        else:
+            return False
+
+    def remove_parent_child_relationship(parent_rid, child_rid, parent_query=None, child_query=None):
+        src = None
+        dst = None
+
+        if src is not None and dst is not None:
+            delete_e_sql('Containment', src, dst)
+        else:
+            return False
+
+    def remove_reference_relationship(reference_rid, referent_rid, reference_query=None, referent_query=None):
+        src = None
+        dst = None
+
+        if src is not None and dst is not None:
+            delete_e_sql('Reference', src, dst)
+        else:
+            return False
+
+
+    def create_node_class(self, name):
+        create_class_sql(name, 'V')
+
+
+    def create_edge_class(self, name):
+        create_class_sql(name, 'E')
+
 
     def run_query(self, sql):
         '''
@@ -316,47 +336,4 @@ class BrassOrientDBHelper(object):
 
 
 
-if __name__ == "__main__":
 
-    try:
-        # Testing 'select'
-        conditions = (BrassOrientDBHelper.condition_str('EncryptionKeyID', 'gabah gabah'), BrassOrientDBHelper.condition_str('Name', 'gabah gabah') )
-        print BrassOrientDBHelper.select_sql('RadioLink', BrassOrientDBHelper.condition_str('EncryptionKeyID', 'gabah gabah'), BrassOrientDBHelper.condition_str('Name', 'gabah gabah'))
-        print BrassOrientDBHelper.select_sql('RadioLink', *conditions)
-
-
-        # Testing 'traverse'
-        print BrassOrientDBHelper.traverse_sql('#161:0', direction='in', edgetype='Containment', maxdepth=3)
-
-
-        # Testing BrassOrientDBHelper functions by calling
-        # the underlying *_sql functions they call
-
-        brass_helper = BrassOrientDBHelper()
-        #brass_helper.get_node_by_rid('#93:0')
-        print BrassOrientDBHelper.select_sql('V', BrassOrientDBHelper.condition_str('rid', '#93:0'))
-
-        #brass_helper.get_nodes_by_type('RadioLink')
-        print BrassOrientDBHelper.select_sql('RadioLink')
-
-        #brass_helper.update_node('#93:0', BrassOrientDBHelper.condition_str('EncryptionKeyID', 'gabah gabah'), BrassOrientDBHelper.condition_str('Name', 'gabah gabah') )
-        print BrassOrientDBHelper.update_sql('#93:0', BrassOrientDBHelper.condition_str('EncryptionKeyID', 'gabah gabah'), BrassOrientDBHelper.condition_str('Name', 'gabah gabah') )
-
-        print '********** get_child_nodes **********'
-        #brass_helper.get_child_nodes('#109:0')
-        print BrassOrientDBHelper.select_sql(
-              BrassOrientDBHelper.traverse_sql('#161:0', direction='in', edgetype='Containment', maxdepth=1),
-              BrassOrientDBHelper.condition_str(lh='$depth', rh=1, op='>=')
-              )
-
-        print '********** getParentNode **********'
-        #brass_helper.get_parent_nodes('#161:0')
-        #print BrassOrientDBHelper.select_sql( BrassOrientDBHelper.traverse_sql('#161:0', direction='out', edgetype='Containment', maxdepth=1), BrassOrientDBHelper.condition_str(lh='$depth', rh=1, op='>='))
-
-        print '********** get_nodes **********'
-        #brass_helper.get_nodes('#109:0', direction='out', maxdepth=1)
-        #brass_helper.get_nodes('#109:0', maxdepth=3, filterdepth=3)
-
-
-    except BrassException as e:
-        print sys.exc_info()[1]

@@ -7,4 +7,4 @@ class BrassException(Exception):
         self.source = source
 
     def __str__(self):
-        return "[ERROR] {0} [SOURCE] {1}\n".format(self.message, self.source)
+        return "[EXCEPTION] {0} [SOURCE] {1}\n".format(self.message, self.source)

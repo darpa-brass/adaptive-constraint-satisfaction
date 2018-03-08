@@ -12,6 +12,7 @@ import os
 import sys
 import json
 import pyorient
+from pyorient import PyOrientException
 from brass_exceptions import BrassException
 
 class BrassOrientDBClient(object):
@@ -53,6 +54,8 @@ class BrassOrientDBClient(object):
 
         try:
             self._client.db_open(self._db_name, self._db_username, self._db_password)
+            print self._client
+            print self._client._cluster_map
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBClient.open_database')
 
@@ -71,6 +74,7 @@ class BrassOrientDBClient(object):
 
     def run_command(self, query_str):
         return self._client.command(query_str)
+
 
 
 '''

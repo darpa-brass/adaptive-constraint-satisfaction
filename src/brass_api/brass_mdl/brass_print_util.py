@@ -35,14 +35,19 @@ def orient_record_to_xml(record, numberTabs):
     """
     xml_str_list = []
 
-    xml_str_list.append( "{0}<{1}".format(create_tab_string(numberTabs), record._class) )
+    if record._class == 'MDLRoot':
+        xml_str_list.append( add_mdl_root_tag_attr() )
+        xml_str_list.append('\n')
+    else:
+        xml_str_list.append( "{0}<{1}".format(create_tab_string(numberTabs), record._class) )
 
-    if 'ID' in record.oRecordData.keys():
-        xml_str_list.append(' {0}="{1}"'.format('ID', record.oRecordData['ID']) )
-    elif 'IDREF' in record.oRecordData.keys():
-        xml_str_list.append(' {0}="{1}"'.format('IDREF', record.oRecordData['IDREF']) )
+        if 'ID' in record.oRecordData.keys():
+            xml_str_list.append(' {0}="{1}"'.format('ID', record.oRecordData['ID']) )
+        elif 'IDREF' in record.oRecordData.keys():
+            xml_str_list.append(' {0}="{1}"'.format('IDREF', record.oRecordData['IDREF']) )
 
-    xml_str_list.append( ">\n" )
+        xml_str_list.append( ">\n" )
+
 
     for key in record.oRecordData.keys():
         if key not in SKIP_PROPERTY_TAGS:
@@ -51,3 +56,18 @@ def orient_record_to_xml(record, numberTabs):
     return ''.join(xml_str_list)
 
 
+'''
+The root tag in a MDL XML file has some attributes that causes exceptions for lxml parser.
+Therefore these attributes need to be removed by importer and added back in by the exporter. 
+'''
+def add_mdl_root_tag_attr():
+    mdl_root_str = '<MDLRoot xmlns="http://www.wsmr.army.mil/RCC/schemas/MDL" \
+    xmlns:tmatsCommon="http://www.wsmr.army.mil/RCC/schemas/TMATS/TmatsCommonTypes" \
+    xmlns:tmatsP="http://www.wsmr.army.mil/RCC/schemas/TMATS/TmatsPGroup" \
+    xmlns:tmatsD="http://www.wsmr.army.mil/RCC/schemas/TMATS/TmatsDGroup" \
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
+    xsi:schemaLocation="http://www.wsmr.army.mil/RCC/schemas/MDL MDL_v1_0_0.xsd">'
+    return mdl_root_str
+
+def remove_mdl_root_tag_attr():
+    mdl_root_str = '<MDLRoot>'
