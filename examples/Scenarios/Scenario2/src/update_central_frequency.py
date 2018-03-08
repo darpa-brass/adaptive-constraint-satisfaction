@@ -1,23 +1,30 @@
 """
 
-example_traverse_print.py
+update_central_frequency.py
 
-This program contains code to grab the root MDL vertex (MDLRoot) in an orientDB database
-then perform a depth-first traversal using "Containment" type of edges from the root vertex.
-Each vertex's name and its properties are printed out during the traversal.
+This program contains code to grab the TxOp nodes from an orientDB database
+and update each of the TxOp CentralFrequencyHz properties based on a
+requirement to change the CentralFrequency
 
-TODO: Add traversal of "Reference" type of edges.
-
-Author: Di Yao (di.yao@vanderbilt.edu), Joseph Hite (joseph.e.hite@vanderbilt.edu)
+Author: Joseph Hite (joseph.e.hite@vanderbilt.edu)
 
 """
 
 import sys
+import os
 
 sys.path.append('src')
 from brass_api.brass_orientdb.brass_orientdb_helper import BrassOrientDBHelper
 from brass_api.brass_orientdb.brass_exceptions import BrassException
 # from brass_mdl.brass_mdl_exporter import MDLExporter
+
+
+def reset_orientdb_central_fq(processor):
+    TxOp_nodes = processor.get_nodes_by_type('TxOp')
+    updated_frequency = 4919500000
+    new_fqhz = processor.condition_str('CentralFrequencyHz', str(updated_frequency), '=')
+    for node in TxOp_nodes:
+        processor.update_node(node._rid, new_fqhz)
 
 
 def createTabString(number_tabs):
@@ -59,32 +66,29 @@ def main(database=None, config_file=None):
     :param (str) config_file: path to the config file for OrientDB
     :return:
     """
-    print '****************       Update RadioLink Schedule         ****************'
+    print '****************       Calling and Restting OrientDB         ****************'
 
     processor = BrassOrientDBHelper(database, config_file)
+    reset_orientdb_central_fq(processor)
 
-    select_radio = processor.select_sql('RadioLink')
-    RadioLink_nodes = processor.run_query(select_radio)
-    for node in RadioLink_nodes:
-        print '>>>>>>> {0} : {1}'.format(node._rid, node.Name)
-        printOrientRecord(node)
-    select_radio = '(' + select_radio + ')'
-    traverse_radio = processor.traverse_sql(select_radio, direction='in', edgetype='Containment')
-    TxOp_select = processor.select_sql(traverse_radio, processor.condition_str('@class', 'TxOp', op='='))
-    TxOp_nodes = processor.run_query(TxOp_select)
+    TxOp_nodes = processor.get_nodes_by_type('TxOp')
+    # Brass process of applying constraints happens here
+    updated_frequency = 4943000000
+    new_fqhz = processor.condition_str('CentralFrequencyHz', str(updated_frequency), '=')
+    print new_fqhz
 
-    # TxOp_nodes = processor.get_nodes_by_type('TxOp')
-
-    for node in TxOp_nodes:
-        print node
-        new_startusec = processor.condition_str('StartUSec', str(int(node.StartUSec) + 105), '=')
-        new_stopusec = processor.condition_str('StopUSec', str(int(node.StopUSec) + 105), '=')
-        processor.update_node(node._rid, new_startusec, new_stopusec)
-    print 'Post Modification'
     TxOp_nodes = processor.get_nodes_by_type('TxOp')
 
     for node in TxOp_nodes:
         print node
+        print '****************       Updating Node {0}         ****************'.format(node._rid)
+        processor.update_node(node._rid, new_fqhz)
+
+    print 'Post Modification'
+    TxOp_nodes = processor.get_nodes_by_type('TxOp')
+    for node in TxOp_nodes:
+        print node
+
     processor.close_database()
 
 
@@ -94,5 +98,6 @@ if __name__ == "__main__":
         config_file = sys.argv[2]
     else:
         sys.exit(
-            'Not enough arguments. The script should be called as following: python example_simple.py myOrientDbDatabase remote')
+            'Not enough arguments. The script should be called as following: '
+            'python {0} <OrientDbDatabase> <config file>'.format(os.path.basename(__file__)))
     main(database, config_file)
