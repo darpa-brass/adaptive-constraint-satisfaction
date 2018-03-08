@@ -23,12 +23,17 @@ from brass_api.brass_orientdb.brass_exceptions import *
 from brass_api.brass_orientdb.brass_orientdb_helper import *
 import brass_print_util
 
-
+'''
+TODO: 
+[1] Add schema validation!!!!
+[2] Move main() to a separate test program.
+'''
 class MDLExporter(object):
     def __init__(self, databaseName, configFile = 'config.json'):
         #self.orientDB_helper = BrassOrientDBHelper( orientdb_client=BrassOrientDBClient(databaseName, configFile) )
         self.orientDB_helper = BrassOrientDBHelper(database_name=databaseName, config_file=configFile)
         self.xmlFile = open(databaseName +'_Exported_MDL.xml', 'w')
+        self.orientDB_helper.open_database()
 
     def print_node(self, record, numberTabs=0):
         """

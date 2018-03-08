@@ -69,5 +69,10 @@ def add_mdl_root_tag_attr():
     xsi:schemaLocation="http://www.wsmr.army.mil/RCC/schemas/MDL MDL_v1_0_0.xsd">'
     return mdl_root_str
 
-def remove_mdl_root_tag_attr():
-    mdl_root_str = '<MDLRoot>'
+def remove_mdl_root_tag_attr(xmlfile):
+    import fileinput
+    for lines in fileinput.FileInput(xmlfile, inplace=1):
+        if lines.startswith('<MDLRoot'):
+            print '<MDLRoot>'
+        else:
+            print lines,

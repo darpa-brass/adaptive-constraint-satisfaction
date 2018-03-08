@@ -36,7 +36,6 @@ class BrassOrientDBClient(object):
 
         # connect to orion server
         self.connect_server()
-        self.open_database()
 
 
     def connect_server(self):
@@ -45,7 +44,7 @@ class BrassOrientDBClient(object):
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBClient.connect_server')
 
-    def open_database(self):
+    def open_database(self, over_write=False):
         """
         Opens the orientDB database.
         :argument:
@@ -53,11 +52,17 @@ class BrassOrientDBClient(object):
         """
 
         try:
-            self._client.db_open(self._db_name, self._db_username, self._db_password)
-            print self._client
-            print self._client._cluster_map
+            if over_write:
+                self.drop_database()
+                self.create_database()
+            else:
+                if self._client.db_exists(self._db_name):
+                    self._client.db_open(self._db_name, self._db_username, self._db_password)
+                else:
+                    self.create_database()
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBClient.open_database')
+
 
     def close_database(self):
         """
@@ -71,6 +76,27 @@ class BrassOrientDBClient(object):
         except:
             raise BrassOrientDBClient(sys.exc_info()[1], 'BrassOrientDBClient.close_database')
 
+    def drop_database(self):
+        """
+        Drops a database if it exists.
+
+        :return:
+        """
+
+        try:
+            if self._client.db_exists(self._db_name):
+                self._client.db_drop(self._db_name)
+
+            return True
+        except:
+            raise BrassOrientDBClient(sys.exc_info()[1], 'BrassOrientDBClient.drop_database')
+
+    def create_database(self):
+        self._client.db_create(self._db_name, pyorient.DB_TYPE_GRAPH)
+        if self._db_password != None and self._db_username != None:
+            self._client.command(
+                "create user {0} identified by {1} role [writer,reader]".format(self._db_username, self._db_password)
+            )
 
     def run_command(self, query_str):
         return self._client.command(query_str)

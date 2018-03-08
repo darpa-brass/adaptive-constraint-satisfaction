@@ -17,12 +17,11 @@ class BrassOrientDBHelper(object):
             else:
                 self._orientdb_client = None
 
-
     def close_database(self):
         self._orientdb_client.close_database()
 
-
-
+    def open_database(self, over_write=False):
+        self._orientdb_client.open_database(over_write)
 
     def get_connected_nodes(self, targetNode_rid, direction='in', edgetype='Containment', maxdepth=1, filterdepth=None, strategy='DEPTH_FIRST'):
         '''
@@ -228,14 +227,6 @@ class BrassOrientDBHelper(object):
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.update_node')
 
 
-    #def create_node(self, type, **properties):
-    #    try:
-    #        #self._orientdb_client.run_command(create_v_sql(type, properties))
-    #    except:
-    #        raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.add_node')
-
-
-
     def delete_node_by_rid(self, rid=None):
         #delete vertex rid
         try:
@@ -299,31 +290,37 @@ class BrassOrientDBHelper(object):
         else:
             return False
 
-    def remove_parent_child_relationship(parent_rid, child_rid, parent_query=None, child_query=None):
+    def remove_parent_child_relationship(self, parent_rid, child_rid, parent_query=None, child_query=None):
         src = None
         dst = None
 
         if src is not None and dst is not None:
-            delete_e_sql('Containment', src, dst)
+            self._orientdb_client.run_command(self, delete_e_sql('Containment', src, dst) )
         else:
             return False
 
-    def remove_reference_relationship(reference_rid, referent_rid, reference_query=None, referent_query=None):
+    def remove_reference_relationship(self, reference_rid, referent_rid, reference_query=None, referent_query=None):
         src = None
         dst = None
 
         if src is not None and dst is not None:
-            delete_e_sql('Reference', src, dst)
+            self._orientdb_client.run_command( delete_e_sql('Reference', src, dst) )
         else:
             return False
 
 
     def create_node_class(self, name):
-        create_class_sql(name, 'V')
+        try:
+            self._orientdb_client.run_command( create_class_sql(name, 'V') )
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.create_node_class')
 
 
     def create_edge_class(self, name):
-        create_class_sql(name, 'E')
+        try:
+            self._orientdb_client.run_command( create_class_sql(name, 'E') )
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.create_edge_class')
 
 
     def run_query(self, sql):
