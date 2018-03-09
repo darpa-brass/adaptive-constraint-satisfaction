@@ -16,16 +16,21 @@ def condition_str(lh, rh, op='='):
         return "{0}{1}'{2}'".format(lh, op, rh)
 
 
-def select_sql(target, *args):
+def select_sql(target, conditions=[], data_to_extract=[]):
     '''
     Creates a select sql string based on the passed in parameters.
     Select queries a database for records (vertices) based on some conditions.
 
-    :param target:  can be rid or class name or V (for vertex class)
-    :param args:    list of conditions for the query
-    :return:        sql string
+    :param target:          can be rid or class name or V (for vertex class)
+    :param conditions:      list of conditions for the query
+    :param data_to_extract: list of data fields to extract
+    :return: string:        sql command
     '''
     query_sql = ['select']
+
+    if len(data_to_extract) > 0:
+        query_sql.append(','.join(data_to_extract))
+
     query_sql.append('from')
 
     if 'traverse' in target:
@@ -33,9 +38,9 @@ def select_sql(target, *args):
     else:
         query_sql.append(target)
 
-    if len(args) > 0:
+    if len(conditions) > 0:
         query_sql.append('where')
-        query_sql.append(' and '.join(args))
+        query_sql.append(' and '.join(conditions))
 
     return ' '.join(query_sql)
 

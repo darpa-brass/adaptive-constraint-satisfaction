@@ -73,11 +73,13 @@ class BrassOrientDBHelper(object):
 
 
         try:
-            return self._orientdb_client.run_command(
-                 select_sql(
+            sql_cmd = select_sql(
                  traverse_sql(targetNode_rid, direction=direction, edgetype=edgetype, maxdepth=maxdepth),
-                 filterdepth_condition
+                 [filterdepth_condition]
                  )
+            print sql_cmd
+            return self._orientdb_client.run_command(
+                 sql_cmd
              )
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_child_nodes')
@@ -101,8 +103,10 @@ class BrassOrientDBHelper(object):
         #print select_sql(type)
 
         try:
+            sql_cmd = select_sql(type)
+            print sql_cmd
             return self._orientdb_client.run_command(
-             select_sql(type)
+                sql_cmd
             )
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_nodes_by_type')
@@ -121,11 +125,23 @@ class BrassOrientDBHelper(object):
         #print select_sql('V', condition_str('rid', targetNode_rid))
 
         try:
+            sql_cmd = select_sql('V', [condition_str('rid', targetNode_rid)])
+            print sql_cmd
             return self._orientdb_client.run_command(
-                select_sql('V', condition_str('rid', targetNode_rid))
+                sql_cmd
             )
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_node_by_rid')
+
+    def get_nodes_by_properties(self, *property_conditions):
+        try:
+            sql_cmd = select_sql(property_conditions)
+            print sql_cmd
+            return self._orientdb_client.run_command(
+                sql_cmd
+            )
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_node_by_properties')
 
 
     def get_child_nodes(self, targetNode_rid, edgetype='Containment'):
@@ -218,8 +234,10 @@ class BrassOrientDBHelper(object):
         #print update_sql(targetNode_rid, *args)
 
         try:
+            sql_cmd = update_sql(targetNode_rid, *args)
+            print sql_cmd
             self._orientdb_client.run_command(
-             update_sql(targetNode_rid, *args)
+                sql_cmd
             )
             return True
 
@@ -235,7 +253,11 @@ class BrassOrientDBHelper(object):
                     format(rid, 'BrassOrientDBHelper.delete_node_by_rid')
                 return False
             else:
-                return self._orientdb_client.run_command( delete_v_sql(rid) )
+                sql_cmd = delete_v_sql(rid)
+                print sql_cmd
+                return self._orientdb_client.run_command(
+                    sql_cmd
+                )
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.delete_node_by_rid')
 
@@ -252,75 +274,131 @@ class BrassOrientDBHelper(object):
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.delete_nodes_by_rid')
 
-    def set_containment_relationship (self, parent_rid, child_rid, parent_query=None, child_query=None):
+    def set_containment_relationship (self, parent_rid=None, child_rid=None, parent_conditions=[], child_conditions=[]):
         src = None
         dst = None
 
         if parent_rid is not None:
             dst = parent_rid
-        else:
-            dst = parent_query
+        elif len(parent_conditions) > 0:
+            dst = select_sql('V', parent_conditions)
 
         if child_rid is not None:
             src = child_rid
-        else:
-            src = child_query
+        elif len(child_conditions) > 0:
+            src = select_sql('V', child_conditions)
 
         if src is not None and dst is not None:
-            return self._orientdb_client.run_command ( create_edge_sql('Containment', src, dst) )
+            sql_cmd = create_edge_sql('Containment', src, dst)
+            print sql_cmd
+            return self._orientdb_client.run_command (
+                sql_cmd
+            )
         else:
             return False
 
-    def set_reference_relationship (self, reference_rid, referent_rid, reference_query=None, referent_query=None):
+    def set_reference_relationship (self, reference_rid=None, referent_rid=None, reference_condition=[], referent_condition=[]):
         src = None
         dst = None
 
         if referent_rid is not None:
             dst = referent_rid
-        else:
-            dst = referent_query
+        elif len(referent_condition) > 0:
+            dst = select_sql('V', referent_condition)
 
         if reference_rid is not None:
             src = reference_rid
-        else:
-            src = reference_query
+        elif len(reference_condition) > 0:
+            src = select_sql('V', reference_condition)
 
         if src is not None and dst is not None:
-            return self._orientdb_client.run_command ( create_edge_sql('Reference', src, dst) )
+            sql_cmd = create_edge_sql('Reference', src, dst)
+            print sql_cmd
+            return self._orientdb_client.run_command (
+                sql_cmd
+            )
         else:
-            return False
+            return ''
 
-    def remove_parent_child_relationship(self, parent_rid, child_rid, parent_query=None, child_query=None):
+    def remove_parent_child_relationship(self, parent_rid=None, child_rid=None, parent_condition=[], child_condition=[]):
         src = None
         dst = None
 
-        if src is not None and dst is not None:
-            self._orientdb_client.run_command(self, delete_e_sql('Containment', src, dst) )
-        else:
-            return False
+        if parent_rid is not None:
+            dst = parent_rid
+        elif len(parent_condition) > 0:
+            dst = select_sql('V', parent_condition)
 
-    def remove_reference_relationship(self, reference_rid, referent_rid, reference_query=None, referent_query=None):
+        if child_rid is not None:
+            src = child_rid
+        elif len(child_condition) > 0:
+            dst = select_sql('V', child_condition)
+
+
+        if src is not None and dst is not None:
+            sql_cmd = delete_e_sql('Containment', src, dst)
+            print sql_cmd
+            self._orientdb_client.run_command(
+                sql_cmd
+            )
+        else:
+            return ''
+
+    def remove_reference_relationship(self, reference_rid=None, referent_rid=None, reference_condition=[], referent_condition=[]):
         src = None
         dst = None
 
+        if referent_rid is not None:
+            dst = referent_rid
+        elif len(referent_condition) > 0:
+            dst = select_sql('V',referent_condition)
+
+        if reference_rid is not None:
+            src = reference_rid
+        elif len(reference_condition) > 0:
+            dst = select_sql('V', reference_condition)
+
         if src is not None and dst is not None:
-            self._orientdb_client.run_command( delete_e_sql('Reference', src, dst) )
+            sql_cmd = delete_e_sql('Reference', src, dst)
+            print sql_cmd
+            self._orientdb_client.run_command(
+                sql_cmd
+            )
         else:
-            return False
+            return ''
 
 
     def create_node_class(self, name):
         try:
-            self._orientdb_client.run_command( create_class_sql(name, 'V') )
+            sql_cmd = create_class_sql(name, 'V')
+            print sql_cmd
+            self._orientdb_client.run_command(
+                sql_cmd
+            )
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.create_node_class')
 
 
     def create_edge_class(self, name):
         try:
-            self._orientdb_client.run_command( create_class_sql(name, 'E') )
+            sql_cmd = create_class_sql(name, 'E')
+            print sql_cmd
+            self._orientdb_client.run_command(
+                sql_cmd
+            )
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.create_edge_class')
+
+    def create_node(self, type, properties={}):
+        try:
+            sql_cmd = insert_sql(type, **properties)
+            print sql_cmd
+            self._orientdb_client.run_command(
+                sql_cmd
+            )
+        except:
+            raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.create_node')
+
 
 
     def run_query(self, sql):
