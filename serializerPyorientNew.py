@@ -119,14 +119,14 @@ class Processor(object):
     orientdbRestrictedIdentifier = []
     for s in set(verticesNames):
       try:
-        self.client.command( "create class "+s+" extends V" )
+        self.client.command( "create class "+s+" extends V clusters 1" )
       except:
-         self.client.command( "create class "+s+"_a extends V" )
+         self.client.command( "create class "+s+"_a extends V clusters 1" )
          
          #certain names are reserved keywords in orientdb eg: Limit, so we need to do things a little different
          orientdbRestrictedIdentifier.append(s)
 
-      print  "create class "+s+" extends V"
+      print  "create class "+s+" extends V clusters 1"
     
     
     #this is the part where we add the vertices one by one to orientdb 
@@ -156,7 +156,7 @@ class Processor(object):
         print "insert into "+ e.keys()[0]+" ("+columns+") values ("+ values+")"
         
     
-    self.client.command( "create class Containment extends E" )
+    self.client.command( "create class Containment extends E clusters 1" )
     #adding containment edges
     for edge in containmentEdges:
       #print  "create edge Containment from (SELECT FROM V WHERE uid = '"+edge[0]+"') TO (SELECT FROM V WHERE uid = '"+edge[1]+"')"
@@ -166,7 +166,7 @@ class Processor(object):
         print "Unexpected error:", sys.exc_info()[0]
         #print edge[0], edge[1]
 
-    self.client.command("create class Reference extends E")
+    self.client.command("create class Reference extends E clusters 1")
     #print self.client.query("select distinct(IDREF) from V")
 
     # for some stupid reason columns are case sensitive in orientdb
@@ -196,11 +196,26 @@ class Processor(object):
 
   def closeDatabase(self):
     self.client.db_close()
-    
+
+  def cleanMDLRoot(self, xmlfile):
+    import fileinput
+    for lines in fileinput.FileInput(xmlfile, inplace=1):
+      if lines.startswith('<MDLRoot'):
+        print '<MDLRoot>'
+      else:
+        print lines,
+
+
 def main(xmlFile, json_loader, database, remotePlocal):
+  import shutil
+
+  orient_mdl_file = xmlFile + '.orientdb'
+  shutil.copy2(xmlFile, orient_mdl_file)
+
   processor=Processor('config.json')
+  processor.cleanMDLRoot(orient_mdl_file)
   processor.initDatabase(database)
-  processor.parseXML(xmlFile)
+  processor.parseXML(orient_mdl_file)
   processor.closeDatabase()
 
 def makeLoadrTemplate(loaderFileName, path, database):

@@ -13,22 +13,21 @@ Author: Di Yao (di.yao@vanderbilt.edu)
 
 """
 
+#from brass_api.orientdb.brass_orientdb_client import *
+from brass_api.orientdb.orientdb_helper import *
+import xml_util
 
-
-import json
-import sys
-import pyorient
-#from brass_api.brass_orientdb.brass_orientdb_client import *
-from brass_api.brass_orientdb.brass_exceptions import *
-from brass_api.brass_orientdb.brass_orientdb_helper import *
-import brass_print_util
-
-
+'''
+TODO: 
+[1] Add schema validation!!!!
+[2] Move main() to a separate test program.
+'''
 class MDLExporter(object):
     def __init__(self, databaseName, configFile = 'config.json'):
         #self.orientDB_helper = BrassOrientDBHelper( orientdb_client=BrassOrientDBClient(databaseName, configFile) )
         self.orientDB_helper = BrassOrientDBHelper(database_name=databaseName, config_file=configFile)
         self.xmlFile = open(databaseName +'_Exported_MDL.xml', 'w')
+        self.orientDB_helper.open_database()
 
     def print_node(self, record, numberTabs=0):
         """
@@ -45,7 +44,7 @@ class MDLExporter(object):
         """
 
         self.xmlFile.write(
-            brass_print_util.orient_record_to_xml(record, numberTabs)
+            xml_util.orient_record_to_xml(record, numberTabs)
         )
 
         #print "select from (traverse in ('Containment') from {0} while $depth < 2) where @rid != {0}".format(record._rid)
@@ -55,7 +54,7 @@ class MDLExporter(object):
         # write out closing xml tag
         self.xmlFile.write(
             '{0}</{1}>\n'.format(
-                brass_print_util.create_tab_string(numberTabs),
+                xml_util.create_tab_string(numberTabs),
                 record._class
             )
         )

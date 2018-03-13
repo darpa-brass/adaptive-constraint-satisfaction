@@ -1,0 +1,217 @@
+def condition_str(lh, rh, op='='):
+    '''
+    Creates a conditional string for queries in the form of:
+    lh op rh
+
+
+    :param lh: left hand side of the condition
+    :param rh: right hand side of the condition
+    :param op: logical operator
+    :return: string
+                name = 'Clark'
+    '''
+    if lh == 'rid' or lh == 'class':
+        return "@{0}{1}'{2}'".format(lh, op, rh)
+    else:
+        return "{0}{1}'{2}'".format(lh, op, rh)
+
+
+def select_sql(target, conditions=[], data_to_extract=[]):
+    '''
+    Creates a select sql string based on the passed in parameters.
+    Select queries a database for records (vertices) based on some conditions.
+
+    :param target:          can be rid or class name or V (for vertex class)
+    :param conditions:      list of conditions for the query
+    :param data_to_extract: list of data fields to extract
+    :return: string:        sql command
+    '''
+    query_sql = ['select']
+
+    if len(data_to_extract) > 0:
+        query_sql.append(','.join(data_to_extract))
+
+    query_sql.append('from')
+
+    if 'traverse' in target:
+        query_sql.append('({0})'.format(target))
+    else:
+        query_sql.append(target)
+
+    if len(conditions) > 0:
+        query_sql.append('where')
+        query_sql.append(' and '.join(conditions))
+
+    return ' '.join(query_sql)
+
+
+"""                                               
+def form_conditionals(**kwargs):                               
+    condition_list = []                                        
+    for key, value in kwargs.items():                          
+       condition_list.append('@{0}="{1}"'.format(key, value)) 
+    return ' and '.join(condition_list)                        
+
+
+# target can be rid or class name or V (for vertex class)
+def select(target, **kwargs):
+    query_sql = ['select']
+    query_sql.append('from')
+
+    if 'traverse' in target:
+        query_sql.append('({0})'.format(target))
+    else:
+        query_sql.append(target)
+
+    if len(kwargs) > 0:
+        query_sql.append('where')
+        query_sql.append(''.join(BrassOrientDBHelper.form_conditionals(**kwargs)))
+
+    return ' '.join(query_sql)
+"""
+
+
+def traverse_sql(target, **kwargs):
+    '''
+    Creates a traverse sql string based passed in parameters.
+    Traverse retrieves connected records(vertices) crossing relationships(edges).
+
+    :param target:  can be rid or class name
+    :param kwargs:  list of traverse conditions
+    :return:        sql string
+    '''
+
+    query_sql = ['traverse']
+    if 'direction' in kwargs:
+        if 'edgetype' in kwargs:
+            query_sql.append("{0}('{1}')".format(kwargs['direction'], kwargs['edgetype']))
+
+    query_sql.append('from')
+    query_sql.append(target)
+
+    if 'maxdepth' in kwargs:
+        query_sql.append('maxdepth {0}'.format(kwargs['maxdepth']))
+    if 'strategy' in kwargs:
+        query_sql.append('strategy {0}'.format(kwargs['strategy']))
+
+    return ' '.join(query_sql)
+
+
+def update_sql(target, *argv):
+    '''
+    Updates the properties of a database record/vertex.
+
+    :param target:  rid of the record/vertex to update
+    :param argv:    List of properties to modify on the record/vertex.
+                    OrientDB will create the property if it doesn't already exist.
+    :return:        sql string
+    '''
+    query_sql = ['update']
+    query_sql.append(target)
+
+    if len(argv) > 0:
+        query_sql.append('set')
+        query_sql.append(', '.join(argv))
+
+    return ' '.join(query_sql)
+
+
+def delete_v_sql(rid):
+    query_sql = ['delete', 'vertex', rid]
+    return ' '.join(query_sql)
+
+def delete_e_sql(type, src, dst):
+    if not src.startswith('#'):
+        src = ('(' + src + ')')
+
+    if not dst.startswith('#'):
+        dst = ('(' + dst + ')')
+
+    query_sql = ['delete', 'edge', 'from', src, 'to', dst, 'where', "@class = '" + type + "'"]
+    return ' '.join(query_sql)
+
+def create_vertex_sql(type, **properties):
+    query_sql = ['create', 'vertex', type]
+
+    if len(properties) > 0:
+        query_sql.append('set')
+
+    properties_l = []
+    for k in properties.keys():
+        properties_l.append( condition_str(k, properties[k]) )
+
+    query_sql.append( ','.join(properties_l) )
+    return ' '.join(query_sql)
+
+
+
+def create_edge_sql(type, src, dst):
+    if not src.startswith('#'):
+        src = ('(' + src + ')')
+
+    if not dst.startswith('#'):
+        dst = ('(' + dst + ')')
+
+    query_sql = ['create', 'edge', type, 'from', src, 'to', dst]
+    return ' '.join(query_sql)
+
+
+
+def create_class_sql(name, superclass='V', cluster_size=1):
+    query_sql = ['create', 'class', name, 'extends', superclass, 'clusters', str(cluster_size)]
+    return ' '.join(query_sql)
+
+
+def insert_sql(type, **properties):
+    query_sql = ['insert into', type]
+
+    columns=''
+    values=''
+    for k in properties.keys():
+        if columns != '':
+            columns += ' ,'
+        if values != '':
+            values += ' ,'
+        columns += k
+        values += "'" + str(properties[k]) + "'"
+    query_sql.append('(' + columns + ')')
+    query_sql.append('values')
+    query_sql.append( '(' + values + ')')
+
+    return ' '.join(query_sql)
+
+
+if __name__ == "__main__":
+    # Testing 'select'
+    conditions = (condition_str('EncryptionKeyID', 'gabah gabah'), condition_str('Name', 'gabah gabah'))
+    print select_sql('RadioLink', condition_str('EncryptionKeyID', 'gabah gabah'), condition_str('Name', 'gabah gabah'))
+    print select_sql('RadioLink', *conditions)
+    print select_sql('V', condition_str('rid', '#93:0'))
+    print select_sql('RadioLink')
+    print select_sql(
+        traverse_sql('#161:0', direction='in', edgetype='Containment', maxdepth=1),
+        condition_str(lh='$depth', rh=1, op='>=')
+    )
+
+
+    # Testing 'traverse'
+    print traverse_sql('#161:0', direction='in', edgetype='Containment', maxdepth=3)
+
+    # Testing 'update'
+    print update_sql('#93:0', condition_str('EncryptionKeyID', 'gabah gabah'), condition_str('Name', 'gabah gabah'))
+
+    # Testing 'create'
+    print create_class_sql('myVertex')
+    print create_class_sql('myEdge', superclass='E')
+    print create_edge_sql('myEdge', '#30:0', '#28:0')
+    print create_edge_sql('myEdge', select_sql('V', condition_str('uid', 'dkakhdfdakdafd')), '#28:0')
+    print create_vertex_sql('myVertex', a='b', c=2, g='1kdfdk', h=0.100)
+
+    # Testing 'delete'
+    print delete_e_sql('myVertex', '#5:0', '#6:0')
+    print delete_v_sql('#35:0')
+
+    # Testing 'insert'
+    print insert_sql('myVertex', a='b', c=2, g='1kdfdk', h=0.100)
+    properties = {'a':'b', 'c':2, 'g':'1kdfdk', 'h':0.100}
+    print insert_sql('myVertex', **properties)

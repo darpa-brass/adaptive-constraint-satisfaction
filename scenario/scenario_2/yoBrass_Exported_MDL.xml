@@ -1,0 +1,440 @@
+<MDLRoot>
+	<DirtyBit>false</DirtyBit>
+	<DatabaseID>example ID string</DatabaseID>
+	<Name>MDLRoot</Name>
+	<Checksum>TBD checksum</Checksum>
+	<Description>TBD</Description>
+	<ConfigurationVersion>0.0.1</ConfigurationVersion>
+	<TestMissions>
+		<TestMission>
+			<Description>Test Mission 1: Frequency change</Description>
+			<TmNSCompleteness>true</TmNSCompleteness>
+			<TmNSCompletenessDescription>Complete</TmNSCompletenessDescription>
+			<Name>Test Mission 1</Name>
+			<RadioLinks>
+				<RadioLink ID="TA_to_GndRadio">
+					<EncryptionKeyID>0</EncryptionKeyID>
+					<Name>TA_to_GndRadio</Name>
+					<TxRxEnable>true</TxRxEnable>
+					<HeartbeatTimeout>65535</HeartbeatTimeout>
+					<EncryptionEnabled>false</EncryptionEnabled>
+					<Description>TA_to_GndRadio Downlink for Test Mission 1</Description>
+					<SourceRadioRef IDREF="GR1">
+					</SourceRadioRef>
+					<DestinationRadioGroupRef IDREF="GROUND_GROUP_1">
+					</DestinationRadioGroupRef>
+					<TransmissionSchedule>
+						<TxOp>
+							<StopUSec>28920</StopUSec>
+							<TxOpTimeout>255</TxOpTimeout>
+							<CenterFrequencyHz>4943000000</CenterFrequencyHz>
+							<StartUSec>736</StartUSec>
+						</TxOp>
+						<TxOp>
+							<StopUSec>78710</StopUSec>
+							<TxOpTimeout>255</TxOpTimeout>
+							<CenterFrequencyHz>4943000000</CenterFrequencyHz>
+							<StartUSec>736</StartUSec>
+						</TxOp>
+						<TxOp>
+							<StopUSec>103710</StopUSec>
+							<TxOpTimeout>255</TxOpTimeout>
+							<CenterFrequencyHz>4943000000</CenterFrequencyHz>
+							<StartUSec>736</StartUSec>
+						</TxOp>
+					</TransmissionSchedule>
+				</RadioLink>
+				<RadioLink ID="GndRadio_to_TA">
+					<EncryptionKeyID>0</EncryptionKeyID>
+					<Name>GndRadio_to_TA</Name>
+					<TxRxEnable>true</TxRxEnable>
+					<HeartbeatTimeout>65535</HeartbeatTimeout>
+					<EncryptionEnabled>false</EncryptionEnabled>
+					<Description>GndRadio_to_TA Uplink for Test Mission 1</Description>
+					<SourceRadioRef IDREF="GR1">
+					</SourceRadioRef>
+					<DestinationRadioGroupRef IDREF="GROUND_GROUP_1">
+					</DestinationRadioGroupRef>
+					<TransmissionSchedule>
+						<TxOp>
+							<StopUSec>16210</StopUSec>
+							<TxOpTimeout>255</TxOpTimeout>
+							<CenterFrequencyHz>4943000000</CenterFrequencyHz>
+							<StartUSec>736</StartUSec>
+						</TxOp>
+						<TxOp>
+							<StopUSec>41210</StopUSec>
+							<TxOpTimeout>255</TxOpTimeout>
+							<CenterFrequencyHz>4943000000</CenterFrequencyHz>
+							<StartUSec>736</StartUSec>
+						</TxOp>
+						<TxOp>
+							<StopUSec>66210</StopUSec>
+							<TxOpTimeout>255</TxOpTimeout>
+							<CenterFrequencyHz>4943000000</CenterFrequencyHz>
+							<StartUSec>736</StartUSec>
+						</TxOp>
+						<TxOp>
+							<StopUSec>91210</StopUSec>
+							<TxOpTimeout>0</TxOpTimeout>
+							<CenterFrequencyHz>4943000000</CenterFrequencyHz>
+							<StartUSec>736</StartUSec>
+						</TxOp>
+					</TransmissionSchedule>
+				</RadioLink>
+			</RadioLinks>
+		</TestMission>
+	</TestMissions>
+	<MeasurementDomains>
+		<MeasurementDomain>
+			<Description>iSIL Measurement Domain</Description>
+			<Name>iSIL</Name>
+			<DataProcessing></DataProcessing>
+		</MeasurementDomain>
+	</MeasurementDomains>
+	<NetworkDomain>
+		<Networks>
+			<Network ID="TestArticle_Network">
+				<Name>TestArticle_Network</Name>
+				<Description>Network for TA Components</Description>
+				<NetworkType>TestArticleNetwork</NetworkType>
+				<NetworkNodes>
+					<NetworkNode ID="TA_RadioComponent1">
+						<Name>TA_RadioComponent</Name>
+						<ModelVersion>Radio Vendor TA Radio Model Version X?</ModelVersion>
+						<HostName>TARadio_Component1</HostName>
+						<InventoryID>COMP-00109</InventoryID>
+						<Description>TA Radio Component (on Test Article 1)</Description>
+						<Model>Radio Vendor TA Radio Model X?</Model>
+						<SerialID>Radio Vendor TA Radio Serial Identifier X?</SerialID>
+						<IEEE1588Version>2008e2e</IEEE1588Version>
+						<Manufacturer>Radio Vendor</Manufacturer>
+						<TmNSApps>
+							<TmNSApp ID="TA_RadioTMA1">
+								<DirtyBit>false</DirtyBit>
+								<Product>TBD App</Product>
+								<Description>TA Radio TMA 1 (on Test Article 1)</Description>
+								<RoleID>TARadio1</RoleID>
+								<TmNSManagementResourcesVersion>TBD</TmNSManagementResourcesVersion>
+								<ProductVersion>X?</ProductVersion>
+								<LoggingLevel>Trace</LoggingLevel>
+								<Name>TA_RadioTMA1</Name>
+								<Manufacturer>Radio Vendor</Manufacturer>
+								<ConfigurationVersion>Radio Vendor TA Radio Software Version X?</ConfigurationVersion>
+								<TmNSNetworkFabricDevice>
+									<IGMPQuerier>Off</IGMPQuerier>
+									<IGMPQuerierInterval>15</IGMPQuerierInterval>
+									<MulticastRoutingMode>Dynamic</MulticastRoutingMode>
+								</TmNSNetworkFabricDevice>
+								<TmNSRadio>
+									<FragmentationPersistencePeriodUSec>0</FragmentationPersistencePeriodUSec>
+									<TxPowerLeveldBm>42</TxPowerLeveldBm>
+									<RFMACAddress>4098</RFMACAddress>
+									<LowPowerModeEnable>false</LowPowerModeEnable>
+									<RANConfigurationRef IDREF="RANConfig1">
+									</RANConfigurationRef>
+									<JoinRadioGroupRefs>
+										<RadioGroupRef IDREF="TA_RADIO_GROUP_1">
+										</RadioGroupRef>
+									</JoinRadioGroupRefs>
+									<LinkAgent>
+										<ListeningPort>12345</ListeningPort>
+										<NetworkInterfaceRef IDREF="TA_RadioComponent1_Wired_Interface">
+										</NetworkInterfaceRef>
+									</LinkAgent>
+								</TmNSRadio>
+								<SMInterface>
+									<SNMPSetup>
+										<NotificationPort>162</NotificationPort>
+										<SNMPPort>161</SNMPPort>
+										<SNMPVersions>
+											<SNMPVersion>v3</SNMPVersion>
+										</SNMPVersions>
+										<DSCPTableEntryRef IDREF="Diffserv_DSCP32_System_Management_and_Video">
+										</DSCPTableEntryRef>
+										<NetworkInterfaceRefs>
+											<NetworkInterfaceRef IDREF="TA_RadioComponent1_Wired_Interface">
+											</NetworkInterfaceRef>
+										</NetworkInterfaceRefs>
+									</SNMPSetup>
+								</SMInterface>
+							</TmNSApp>
+						</TmNSApps>
+						<InternalStructure>
+							<Modules>
+								<Module ID="d8e5287">
+									<Manufacturer>n/a</Manufacturer>
+									<PositionsOccupied>1</PositionsOccupied>
+									<Position>1</Position>
+									<InventoryID>n/a</InventoryID>
+									<Description>Generated Module</Description>
+									<Model>n/a</Model>
+									<SerialID>n/a</SerialID>
+									<Name>Generated Module</Name>
+									<RunningAppRefs>
+										<TmNSAppRef IDREF="TA_RadioTMA1">
+										</TmNSAppRef>
+									</RunningAppRefs>
+									<NetworkInterfaces>
+										<NetworkInterface ID="TA_RadioComponent1_Wired_Interface">
+											<MACAddress>00:00:00:00:00:00</MACAddress>
+											<Name>eth0</Name>
+											<Netmask>255.255.255.0</Netmask>
+											<DHCPEnable>false</DHCPEnable>
+											<IPAddress>10.1.1.1</IPAddress>
+											<Description>Wired Interface for TA Radio Component 1 on Test Article 1</Description>
+											<PhysicalNetworkPorts>
+												<PhysicalNetworkPort ID="TA_RadioComponent1_Wired_PhyNetPort">
+													<Medium>Copper</Medium>
+													<PortNumber>1</PortNumber>
+													<Description>TBD description</Description>
+													<Name>port1</Name>
+													<PortDataRate>
+														<BaseUnit>BitPerSecond</BaseUnit>
+														<Value>1e9</Value>
+													</PortDataRate>
+												</PhysicalNetworkPort>
+											</PhysicalNetworkPorts>
+										</NetworkInterface>
+										<NetworkInterface ID="TA_RadioComponent1_RF_Interface">
+											<MACAddress>02:00:00:00:10:0F</MACAddress>
+											<Name>rfnet0</Name>
+											<Netmask>255.255.255.0</Netmask>
+											<DHCPEnable>false</DHCPEnable>
+											<IPAddress>10.1.2.1</IPAddress>
+											<Description>Wireless Interface for TA Radio Component 1 on Test Article 1</Description>
+											<PhysicalNetworkPorts>
+												<PhysicalNetworkPort ID="TA_RadioComponent1_RF_PhyNetPort">
+													<Medium>Wireless</Medium>
+													<PortNumber>1</PortNumber>
+													<Description>TBD description</Description>
+													<Name>port1</Name>
+													<PortDataRate>
+														<BaseUnit>BitPerSecond</BaseUnit>
+														<Value>2e7</Value>
+													</PortDataRate>
+												</PhysicalNetworkPort>
+											</PhysicalNetworkPorts>
+										</NetworkInterface>
+									</NetworkInterfaces>
+									<Ports>
+										<Port ID="TA_RadioComponent1_RF_Port">
+											<Index>1</Index>
+											<PortDirection>Bidirectional</PortDirection>
+											<Name>TA Radio Component1 RF Port</Name>
+											<Description>TBD description</Description>
+											<PhysicalNetworkPortRef IDREF="TA_RadioComponent1_RF_PhyNetPort">
+											</PhysicalNetworkPortRef>
+										</Port>
+										<Port ID="TA_RadioComponent1_Wired_Port">
+											<Index>2</Index>
+											<PortDirection>Bidirectional</PortDirection>
+											<Name>TA Radio Component1 Wired Port</Name>
+											<Description>TBD description</Description>
+											<PhysicalNetworkPortRef IDREF="TA_RadioComponent1_Wired_PhyNetPort">
+											</PhysicalNetworkPortRef>
+										</Port>
+									</Ports>
+								</Module>
+							</Modules>
+						</InternalStructure>
+					</NetworkNode>
+				</NetworkNodes>
+			</Network>
+			<Network ID="RAN_Network">
+				<Name>RAN_Network</Name>
+				<Description>Network for Ground RAN Components</Description>
+				<NetworkType>RadioAccessNetwork</NetworkType>
+				<NetworkNodes>
+					<NetworkNode ID="RAN_GroundRadio1">
+						<Name>RAN_GroundRadio1</Name>
+						<ModelVersion>Model Version</ModelVersion>
+						<HostName>RAN_GroundRadio1</HostName>
+						<InventoryID>COMP-00112</InventoryID>
+						<Description></Description>
+						<Model>Model</Model>
+						<SerialID>Serial Identifier</SerialID>
+						<IEEE1588Version>2008e2e</IEEE1588Version>
+						<Manufacturer>Radio Vendor</Manufacturer>
+						<TmNSApps>
+							<TmNSApp ID="RAN_GroundRadio1TMA1">
+								<DirtyBit>false</DirtyBit>
+								<Product>TBD App</Product>
+								<Description>Ground Radio TMA 1 (on Radio Access Network 1)</Description>
+								<RoleID>GroundRadio1</RoleID>
+								<TmNSManagementResourcesVersion>TBD</TmNSManagementResourcesVersion>
+								<ProductVersion>X?</ProductVersion>
+								<LoggingLevel>Trace</LoggingLevel>
+								<Name>RAN1_GroundRadio1TMA1</Name>
+								<Manufacturer>Radio Vendor</Manufacturer>
+								<ConfigurationVersion>Radio Vendor Ground Radio Software Version X?</ConfigurationVersion>
+								<TmNSNetworkFabricDevice>
+									<IGMPQuerier>Off</IGMPQuerier>
+									<IGMPQuerierInterval>15</IGMPQuerierInterval>
+									<MulticastRoutingMode>Dynamic</MulticastRoutingMode>
+								</TmNSNetworkFabricDevice>
+								<TmNSRadio>
+									<FragmentationPersistencePeriodUSec>0</FragmentationPersistencePeriodUSec>
+									<TxPowerLeveldBm>42</TxPowerLeveldBm>
+									<RFMACAddress>4097</RFMACAddress>
+									<LowPowerModeEnable>false</LowPowerModeEnable>
+									<RANConfigurationRef IDREF="RANConfig1">
+									</RANConfigurationRef>
+									<JoinRadioGroupRefs>
+										<RadioGroupRef IDREF="GROUND_GROUP_1">
+										</RadioGroupRef>
+									</JoinRadioGroupRefs>
+									<LinkAgent>
+										<ListeningPort>12345</ListeningPort>
+										<NetworkInterfaceRef IDREF="RAN_GroundRadio1_Wired_Interface">
+										</NetworkInterfaceRef>
+									</LinkAgent>
+								</TmNSRadio>
+								<SMInterface>
+									<SNMPSetup>
+										<NotificationPort>162</NotificationPort>
+										<SNMPPort>161</SNMPPort>
+										<SNMPVersions>
+											<SNMPVersion>v3</SNMPVersion>
+										</SNMPVersions>
+										<DSCPTableEntryRef IDREF="Diffserv_DSCP32_System_Management_and_Video">
+										</DSCPTableEntryRef>
+										<NetworkInterfaceRefs>
+											<NetworkInterfaceRef IDREF="RAN_GroundRadio1_Wired_Interface">
+											</NetworkInterfaceRef>
+										</NetworkInterfaceRefs>
+									</SNMPSetup>
+								</SMInterface>
+							</TmNSApp>
+						</TmNSApps>
+						<InternalStructure>
+							<Modules>
+								<Module ID="d8e4632">
+									<Manufacturer>n/a</Manufacturer>
+									<PositionsOccupied>1</PositionsOccupied>
+									<Position>1</Position>
+									<InventoryID>COMP-00112</InventoryID>
+									<Description>Generated Module</Description>
+									<Model>n/a</Model>
+									<SerialID>n/a</SerialID>
+									<Name>Generated Module</Name>
+									<RunningAppRefs>
+										<TmNSAppRef IDREF="RAN_GroundRadio1TMA1">
+										</TmNSAppRef>
+									</RunningAppRefs>
+									<NetworkInterfaces>
+										<NetworkInterface ID="RAN_GroundRadio1_Wired_Interface">
+											<MACAddress>00:00:00:00:00:00</MACAddress>
+											<Name>eth0</Name>
+											<Netmask>255.255.255.0</Netmask>
+											<DHCPEnable>false</DHCPEnable>
+											<IPAddress>10.1.3.1</IPAddress>
+											<Description>Wired Interface for Ground Radio Component 1 on Radio Access Network 1</Description>
+											<PhysicalNetworkPorts>
+												<PhysicalNetworkPort ID="RAN_GroundRadio1_Wired_PhyNetPort">
+													<Medium>Copper</Medium>
+													<PortNumber>1</PortNumber>
+													<Description>TBD description</Description>
+													<Name>port1</Name>
+													<PortDataRate>
+														<BaseUnit>BitPerSecond</BaseUnit>
+														<Value>1e9</Value>
+													</PortDataRate>
+												</PhysicalNetworkPort>
+											</PhysicalNetworkPorts>
+										</NetworkInterface>
+										<NetworkInterface ID="RAN_GroundRadio1_RF_Interface">
+											<MACAddress>02:00:00:00:10:01</MACAddress>
+											<Name>rfnet0</Name>
+											<Netmask>255.255.255.0</Netmask>
+											<DHCPEnable>false</DHCPEnable>
+											<IPAddress>10.1.2.2</IPAddress>
+											<Description>Wireless Interface for Ground Radio Component 1 on Radio Access Network 1</Description>
+											<PhysicalNetworkPorts>
+												<PhysicalNetworkPort ID="RAN_GroundRadio1_RF_PhyNetPort">
+													<Medium>Wireless</Medium>
+													<PortNumber>1</PortNumber>
+													<Description>TBD description</Description>
+													<Name>port1</Name>
+													<PortDataRate>
+														<BaseUnit>BitPerSecond</BaseUnit>
+														<Value>2e7</Value>
+													</PortDataRate>
+												</PhysicalNetworkPort>
+											</PhysicalNetworkPorts>
+										</NetworkInterface>
+									</NetworkInterfaces>
+									<Ports>
+										<Port ID="RAN_GroundRadio1_Wired_Port">
+											<Index>1</Index>
+											<PortDirection>Bidirectional</PortDirection>
+											<Name>RAN1 Ground Radio Component Wired Port</Name>
+											<Description>TBD description</Description>
+											<PhysicalNetworkPortRef IDREF="RAN_GroundRadio1_Wired_PhyNetPort">
+											</PhysicalNetworkPortRef>
+										</Port>
+										<Port ID="RAN_GroundRadio1_RF_Port">
+											<Index>2</Index>
+											<PortDirection>Bidirectional</PortDirection>
+											<Name>RAN Ground Radio Component1 RF Port</Name>
+											<Description>TBD description</Description>
+											<PhysicalNetworkPortRef IDREF="RAN_GroundRadio1_RF_PhyNetPort">
+											</PhysicalNetworkPortRef>
+										</Port>
+									</Ports>
+								</Module>
+							</Modules>
+						</InternalStructure>
+					</NetworkNode>
+				</NetworkNodes>
+			</Network>
+		</Networks>
+	</NetworkDomain>
+	<RANConfigurations>
+		<RANConfiguration ID="RANConfig1">
+			<TSSTunnelEncryptionEnabled>true</TSSTunnelEncryptionEnabled>
+			<LinkAgentConnectionEncryptionEnabled>true</LinkAgentConnectionEncryptionEnabled>
+			<Name>RANConfig1</Name>
+			<LinkAgentConnectionTimeout>30</LinkAgentConnectionTimeout>
+			<CenterFrequencyHz>4943000000</CenterFrequencyHz>
+			<MaxGuardTimeSec>0.001</MaxGuardTimeSec>
+			<ModulationType>SOQPSK-TG</ModulationType>
+			<EpochSize>100</EpochSize>
+			<LDPCBlocksPerBurst>4</LDPCBlocksPerBurst>
+			<Description>Common RAN configuration parameters for Dynamic Configuration for 2 TA Radios and 3 Ground Radios with 04bpb</Description>
+			<RadioControlLoopDSCPRef IDREF="Diffserv_DSCP56_NetworkControl">
+			</RadioControlLoopDSCPRef>
+			<RANCommandControlDSCPRef IDREF="Diffserv_DSCP48_InterNetworkControl">
+			</RANCommandControlDSCPRef>
+			<RadioGroups>
+				<RadioGroup ID="GROUND_GROUP_1">
+					<Name>RadioGroup_Ground</Name>
+					<Description>The members of this radio group are ground radios for Test 1</Description>
+					<GroupRFMACAddress>65282</GroupRFMACAddress>
+				</RadioGroup>
+				<RadioGroup ID="TA_RADIO_GROUP_1">
+					<Name>RadioGroup_TA</Name>
+					<Description>The member of this group is the TA radio for Test 1</Description>
+					<GroupRFMACAddress>65281</GroupRFMACAddress>
+				</RadioGroup>
+			</RadioGroups>
+		</RANConfiguration>
+	</RANConfigurations>
+	<DSCPTable>
+		<DSCPTableEntry ID="Diffserv_DSCP32_System_Management_and_Video">
+			<Description>Diffserv (Class4 DSCP 32) for System Management and Video</Description>
+			<DSCPValue>0b100000</DSCPValue>
+			<Name>Diffserv (Class4 DSCP 32)</Name>
+		</DSCPTableEntry>
+		<DSCPTableEntry ID="Diffserv_DSCP48_InterNetworkControl">
+			<Description>Diffserv (InterNetwork Control PHB DSCP 48) for RAN Command/Control Messaging</Description>
+			<DSCPValue>0b110000</DSCPValue>
+			<Name>Diffserv (InterNetwork Control DSCP 48)</Name>
+		</DSCPTableEntry>
+		<DSCPTableEntry ID="Diffserv_DSCP56_NetworkControl">
+			<Description>Diffserv (Network Control PHB DSCP 56) for Link Manager Messaging</Description>
+			<DSCPValue>0b111000</DSCPValue>
+			<Name>Diffserv (Network Control DSCP 56)</Name>
+		</DSCPTableEntry>
+	</DSCPTable>
+</MDLRoot>
