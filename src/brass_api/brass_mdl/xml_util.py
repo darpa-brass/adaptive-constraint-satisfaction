@@ -1,7 +1,7 @@
 import pyorient
+from brass_api.common.exception_class import *
 
-
-SKIP_PROPERTY_TAGS = ['uid', 'ID', 'IDREF', 'in_Containment', 'out_Containment', 'in_Reference', 'out_Reference']
+SKIP_PROPERTY_TAGS = ['uid', 'ID', 'IDREF', 'in_Containment', 'out_Containment', 'in_Reference', 'out_Reference', 'schema']
 
 def create_tab_string(numberTabs):
     '''
@@ -70,9 +70,38 @@ def add_mdl_root_tag_attr():
     return mdl_root_str
 
 def remove_mdl_root_tag_attr(xmlfile):
-    import fileinput
+    import fileinput, re
+
+    mdl_schema = None
+    mdl_root_str = None
+
     for lines in fileinput.FileInput(xmlfile, inplace=1):
         if lines.startswith('<MDLRoot'):
             print '<MDLRoot>'
+            mdl_root_str = lines
         else:
             print lines,
+
+    matchObj = re.search('MDL_(.*)xsd', mdl_root_str)
+    if matchObj is not None:
+        mdl_schema = matchObj.group(0)
+
+    return mdl_schema
+
+
+def validate_mdl(xmlfile, mdl_schema='../include/mdl_xsd/MDL_v1_0_0.xsd'):
+    from lxml import etree
+
+    try:
+        schema_doc = etree.parse(mdl_schema)
+        schema = etree.XMLSchema(schema_doc)
+
+        with open(xmlfile) as f:
+            doc = etree.parse(f)
+
+        schema.assertValid(doc)
+
+    except etree.XMLSchemaParseError as e:
+        raise BrassException('Invalid MDL Schema File: ' + e.message, 'xml_util.validate_mdl')
+    except etree.DocumentInvalid as e:
+        raise BrassException('Invalide MDL XML File: ' + e.message, 'xml_util.validate_mdl')

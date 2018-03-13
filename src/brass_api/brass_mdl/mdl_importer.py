@@ -1,9 +1,9 @@
-import sys, os
+import sys, os, shutil
 import lxml
 import pyorient
 from lxml import etree
-from brass_print_util import *
-from brass_api.brass_orientdb.brass_orientdb_helper import BrassOrientDBHelper
+from xml_util import *
+from brass_api.brass_orientdb.orientdb_helper import BrassOrientDBHelper
 from brass_api.brass_orientdb.orientdb_sql import condition_str, select_sql
 
 '''
@@ -13,7 +13,7 @@ TODO:
 '''
 class MDLImporter(object):
     def __init__(self, databaseName, mdlFile, configFile = 'config.json'):
-        #self.orientDB_helper = BrassOrientDBHelper( orientdb_client=BrassOrientDBClient(databaseName, configFile) )
+
         self.loadrObject = []
         self.uniqueIdentifiers = {}
 
@@ -21,9 +21,15 @@ class MDLImporter(object):
         self.mdlFile = mdlFile
         self.orientDB_helper.open_database(over_write=True)
 
+
     def import_mdl(self):
-        remove_mdl_root_tag_attr(self.mdlFile)
-        self.parseXML(self.mdlFile)
+        orient_mdl_file = self.mdlFile + '.orientdb'
+        shutil.copy2(self.mdlFile, orient_mdl_file)
+
+        self._mdl_schema = remove_mdl_root_tag_attr(orient_mdl_file)
+        self.parseXML(orient_mdl_file)
+
+        os.remove(orient_mdl_file)
 
     def parseXML(self, xmlFile):
         # this is a stack we maintain when traversing the xml tree
@@ -133,6 +139,9 @@ class MDLImporter(object):
                 classToInsertInto = e.keys()[0]
                 if classToInsertInto in orientdbRestrictedIdentifier:
                     classToInsertInto += '_a'
+
+                if classToInsertInto == 'MDLRoot':
+                    e[e.keys()[0]]['schema'] = self._mdl_schema
 
                 #DY: self.client.command("insert into " + classToInsertInto + " (" + columns + ") values (" + values + ")")
                 self.orientDB_helper.create_node(classToInsertInto, e[e.keys()[0]])

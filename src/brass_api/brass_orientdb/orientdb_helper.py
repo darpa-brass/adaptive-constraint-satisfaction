@@ -1,9 +1,7 @@
-import os
 import sys
-import json
 
 from brass_orientdb_client import BrassOrientDBClient
-from brass_exceptions import BrassException
+from brass_api.common.exception_class import BrassException
 from orientdb_sql import *
 
 
@@ -133,7 +131,7 @@ class BrassOrientDBHelper(object):
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_node_by_rid')
 
-    def get_nodes_by_properties(self, *property_conditions):
+    def get_nodes_by_properties(self, property_conditions=[]):
         try:
             sql_cmd = select_sql(property_conditions)
             print sql_cmd

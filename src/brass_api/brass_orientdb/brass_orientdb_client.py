@@ -8,12 +8,10 @@ Author: Di Yao (di.yao@vanderbilt.edu)
 
 """
 
-import os
 import sys
 import json
 import pyorient
-from pyorient import PyOrientException
-from brass_exceptions import BrassException
+from brass_api.common.exception_class import BrassException
 
 class BrassOrientDBClient(object):
     def __init__(self, database_name, configFile = 'config.json'):
