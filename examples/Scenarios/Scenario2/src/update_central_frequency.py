@@ -16,13 +16,13 @@ import os
 sys.path.append('src')
 from brass_api.brass_orientdb.brass_orientdb_helper import BrassOrientDBHelper
 from brass_api.brass_orientdb.brass_exceptions import BrassException
-# from brass_mdl.brass_mdl_exporter import MDLExporter
+from brass_api.brass_mdl.brass_mdl_exporter import MDLExporter
 
 
 def reset_orientdb_central_fq(processor):
     TxOp_nodes = processor.get_nodes_by_type('TxOp')
     updated_frequency = 4919500000
-    new_fqhz = processor.condition_str('CentralFrequencyHz', str(updated_frequency), '=')
+    new_fqhz = processor.condition_str('CenterFrequencyHz', str(updated_frequency), '=')
     for node in TxOp_nodes:
         processor.update_node(node._rid, new_fqhz)
 
@@ -74,23 +74,35 @@ def main(database=None, config_file=None):
     TxOp_nodes = processor.get_nodes_by_type('TxOp')
     # Brass process of applying constraints happens here
     updated_frequency = 4943000000
-    new_fqhz = processor.condition_str('CentralFrequencyHz', str(updated_frequency), '=')
+    new_fqhz = processor.condition_str('CenterFrequencyHz', str(updated_frequency), '=')
     print new_fqhz
 
     TxOp_nodes = processor.get_nodes_by_type('TxOp')
+    RANConfiguration_nodes = processor.get_nodes_by_type('RANConfiguration')
+    for txop_node in TxOp_nodes:
+        print txop_node
+        print '****************       Updating TxOp Node {0}         ****************'.format(txop_node._rid)
+        processor.update_node(txop_node._rid, new_fqhz)
 
-    for node in TxOp_nodes:
-        print node
-        print '****************       Updating Node {0}         ****************'.format(node._rid)
-        processor.update_node(node._rid, new_fqhz)
+    for ran_node in RANConfiguration_nodes:
+        print ran_node
+        print '****************       Updating RANConfiguration Node {0}         ****************'.format(ran_node._rid)
+        processor.update_node(ran_node._rid, new_fqhz)
+
 
     print 'Post Modification'
     TxOp_nodes = processor.get_nodes_by_type('TxOp')
-    for node in TxOp_nodes:
-        print node
+    RANConfiguration_nodes = processor.get_nodes_by_type('RANConfiguration')
+
+    for txop_node in TxOp_nodes:
+        print txop_node
+
+    for ran_node in RANConfiguration_nodes:
+        print ran_node
 
     processor.close_database()
-
+    export=MDLExporter(database, config_file)
+    export.export_to_mdl()
 
 if __name__ == "__main__":
     if len(sys.argv) >= 3:
