@@ -1,3 +1,11 @@
+"""
+mdl_importer.py
+Contains an importer class that parses an MDL xml file and
+creates an orientdb database from it.
+
+Author: Di Yao (di.yao@vanderbilt.edu)
+"""
+
 import sys, os, shutil
 import lxml
 import pyorient
@@ -6,11 +14,7 @@ from xml_util import *
 from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
 from brass_api.orientdb.orientdb_sql import condition_str, select_sql
 
-'''
-TODO: 
-[1] Add schema validation!!!!
-[2] Move main() to a separate test program.
-'''
+
 class MDLImporter(object):
     def __init__(self, databaseName, mdlFile, configFile = 'config.json'):
 
@@ -27,6 +31,9 @@ class MDLImporter(object):
         shutil.copy2(self.mdlFile, orient_mdl_file)
 
         self._mdl_schema = remove_mdl_root_tag_attr(orient_mdl_file)
+
+        validate_mdl(self.mdlFile, self._mdl_schema)
+
         self.parseXML(orient_mdl_file)
 
         os.remove(orient_mdl_file)
@@ -106,7 +113,7 @@ class MDLImporter(object):
                                 attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(
                                     attribute_stack[-2].keys()[0])
                     except:
-                        print "Unexpected error:", sys.exc_info()[0]
+                        raise BrassException(sys.exc_info()[0], 'MDLImporter.parseXML')
 
                 # if it doesn't contain more than one thing, it's an attribute and will need to add it to the vertex right above on the stack
                 else:
@@ -121,16 +128,13 @@ class MDLImporter(object):
         orientdbRestrictedIdentifier = []
         for s in set(verticesNames):
             try:
-                #DY:    self.client.command("create class " + s + " extends V clusters 1")
                 self.orientDB_helper.create_node_class(s)
             except:
-                #DY:    self.client.command("create class " + s + "_a extends V clusters 1")
                 self.orientDB_helper.create_node_class(s + '_a')
 
                 # certain names are reserved keywords in orientdb eg: Limit, so we need to do things a little different
                 orientdbRestrictedIdentifier.append(s)
 
-            #print  "create class " + s + " extends V clusters 1"
 
         # this is the part where we add the vertices one by one to orientdb
         for e in vertices:
@@ -143,45 +147,43 @@ class MDLImporter(object):
                 if classToInsertInto == 'MDLRoot':
                     e[e.keys()[0]]['schema'] = self._mdl_schema
 
-                #DY: self.client.command("insert into " + classToInsertInto + " (" + columns + ") values (" + values + ")")
+
                 self.orientDB_helper.create_node(classToInsertInto, e[e.keys()[0]])
 
 
             except:
-                print "Unexpected error:", sys.exc_info()[1]
+                raise BrassException(sys.exc_info()[1], 'MDLImporter.parseXML')
                 #print "insert into " + e.keys()[0] + " (" + columns + ") values (" + values + ")"
 
 
-        #DY: self.client.command("create class Containment extends E clusters 1")
+
         self.orientDB_helper.create_edge_class('Containment')
 
         # adding containment edges
         for edge in containmentEdges:
             # print  "create edge Containment from (SELECT FROM V WHERE uid = '"+edge[0]+"') TO (SELECT FROM V WHERE uid = '"+edge[1]+"')"
             try:
-                #DY:        self.client.command("create edge Containment from (SELECT FROM V WHERE uid = '" + edge[
-                #    0] + "') TO (SELECT FROM V WHERE uid = '" + edge[1] + "')")
-                parent = [condition_str('uid', edge[0])]
-                child = [condition_str('uid', edge[1])]
+                child = [condition_str('uid', edge[0])]
+                parent = [condition_str('uid', edge[1])]
                 self.orientDB_helper.set_containment_relationship(
                     parent_conditions=parent,
                     child_conditions=child
                 )
             except:
-                print "Unexpected error:", sys.exc_info()[0]
+                raise BrassException(sys.exc_info()[0], 'MDLImporter.parseXML')
                 # print edge[0], edge[1]
 
-        #DY:        self.client.command("create class Reference extends E clusters 1")
+
         self.orientDB_helper.create_edge_class('Reference')
 
         # for some stupid reason columns are case sensitive in orientdb
-        #DY:        for idref in self.client.query("select distinct(IDREF) as idref from V"):
+
         for idref in self.orientDB_helper.run_query(select_sql('V', data_to_extract=['distinct(IDREF) as idref'])):
 
             # sometimes we have orphans so we need to escape them.
             try:
-                #DY:        self.client.command(
-                #    "create edge Reference from (select from V where IDREF='" + idref.idref + "') TO (select from V where ID='" + idref.idref + "')")
+
+
                 reference_condition = [condition_str('IDREF', idref.idref)]
                 referent_condition = [condition_str('ID', idref.idref)]
                 self.orientDB_helper.set_reference_relationship(

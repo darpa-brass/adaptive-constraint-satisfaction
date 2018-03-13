@@ -75,6 +75,11 @@ class MDLExporter(object):
             for v in self.orientDB_helper.get_nodes_by_type('MDLRoot'):
                 self.print_node(v)
 
+                self.xmlFile.close()
+                #if 'schema' in v.oRecordData:
+                #    mdl_schema = v.schema
+                #    xml_util.validate_mdl(self.xmlFile.name, mdl_schema)
+
         except:
           print "Unexpected error:", sys.exc_info()[1]
 

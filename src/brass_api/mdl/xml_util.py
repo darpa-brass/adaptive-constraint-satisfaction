@@ -1,4 +1,13 @@
+"""
+xml_util.py
+
+Contains xml serialization functions and xml validation function.
+
+Author: Di Yao (di.yao@vanderbilt.edu)
+"""
+
 import pyorient
+import os
 from brass_api.common.exception_class import *
 
 SKIP_PROPERTY_TAGS = ['uid', 'ID', 'IDREF', 'in_Containment', 'out_Containment', 'in_Reference', 'out_Reference', 'schema']
@@ -89,8 +98,12 @@ def remove_mdl_root_tag_attr(xmlfile):
     return mdl_schema
 
 
-def validate_mdl(xmlfile, mdl_schema='../include/mdl_xsd/MDL_v1_0_0.xsd'):
+def validate_mdl(xmlfile, mdl_schema):
     from lxml import etree
+
+    BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+    mdl_schema = "{0}/../include/mdl_xsd/{1}".format(BASE_DIR, mdl_schema)
+
 
     try:
         schema_doc = etree.parse(mdl_schema)
@@ -105,3 +118,4 @@ def validate_mdl(xmlfile, mdl_schema='../include/mdl_xsd/MDL_v1_0_0.xsd'):
         raise BrassException('Invalid MDL Schema File: ' + e.message, 'xml_util.validate_mdl')
     except etree.DocumentInvalid as e:
         raise BrassException('Invalide MDL XML File: ' + e.message, 'xml_util.validate_mdl')
+
