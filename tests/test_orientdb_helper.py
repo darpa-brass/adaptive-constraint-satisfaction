@@ -1,6 +1,6 @@
 import os, sys
-import brass_api.brass_orientdb.brass_orientdb_client
-from brass_api.brass_orientdb.orientdb_helper import BrassOrientDBHelper
+import brass_api.orientdb.brass_orientdb_client
+from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
 
 if __name__ == "__main__":
     from optparse import OptionParser

@@ -14,10 +14,10 @@ import sys
 import os
 
 sys.path.append('src')
-from brass_api.brass_orientdb.orientdb_helper import BrassOrientDBHelper
+from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
 
 
-# from brass_mdl.brass_mdl_exporter import MDLExporter
+# from mdl.brass_mdl_exporter import MDLExporter
 
 
 def reset_orientdb_central_fq(processor):

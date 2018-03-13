@@ -13,8 +13,8 @@ Author: Di Yao (di.yao@vanderbilt.edu)
 
 """
 
-#from brass_api.brass_orientdb.brass_orientdb_client import *
-from brass_api.brass_orientdb.orientdb_helper import *
+#from brass_api.orientdb.brass_orientdb_client import *
+from brass_api.orientdb.orientdb_helper import *
 import xml_util
 
 '''

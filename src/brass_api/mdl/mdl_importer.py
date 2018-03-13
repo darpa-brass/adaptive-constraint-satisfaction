@@ -3,8 +3,8 @@ import lxml
 import pyorient
 from lxml import etree
 from xml_util import *
-from brass_api.brass_orientdb.orientdb_helper import BrassOrientDBHelper
-from brass_api.brass_orientdb.orientdb_sql import condition_str, select_sql
+from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
+from brass_api.orientdb.orientdb_sql import condition_str, select_sql
 
 '''
 TODO: 

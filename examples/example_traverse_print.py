@@ -15,10 +15,10 @@ Author: Di Yao (di.yao@vanderbilt.edu), Joseph Hite (joseph.e.hite@vanderbilt.ed
 import sys
 
 sys.path.append('src')
-from brass_api.brass_orientdb.orientdb_helper import BrassOrientDBHelper
+from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
 
 
-# from brass_mdl.brass_mdl_exporter import MDLExporter
+# from mdl.brass_mdl_exporter import MDLExporter
 
 
 def createTabString(number_tabs):
