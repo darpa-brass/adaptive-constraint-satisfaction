@@ -1,3 +1,7 @@
+"""
+Author: Di Yao (di.yao@vanderbilt.edu)
+"""
+
 import sys
 
 from brass_orientdb_client import BrassOrientDBClient

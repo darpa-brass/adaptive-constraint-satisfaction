@@ -1,3 +1,8 @@
+"""
+Author: Di Yao (di.yao@vanderbilt.edu)
+"""
+
+
 def condition_str(lh, rh, op='='):
     '''
     Creates a conditional string for queries in the form of:
