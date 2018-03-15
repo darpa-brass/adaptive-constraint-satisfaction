@@ -3,7 +3,6 @@ mdl_importer.py
 Contains an importer class that parses an MDL xml file and
 creates an orientdb database from it.
 
-Author: Di Yao (di.yao@vanderbilt.edu)
 """
 
 import sys, os, shutil
@@ -16,6 +15,9 @@ from brass_api.orientdb.orientdb_sql import condition_str, select_sql
 
 
 class MDLImporter(object):
+    """
+    Class responsible for importing mdl xml files into an orientdb database.
+    """
     def __init__(self, databaseName, mdlFile, configFile = 'config.json'):
 
         self.loadrObject = []
@@ -27,6 +29,14 @@ class MDLImporter(object):
 
 
     def import_mdl(self):
+        """
+        Main function called to start the import process.
+        A temporary copy of the mdl file is saved with attributes removed from the
+        <MDLRoot>.
+        The temporary mdl file is then valided against mdl schema and parsed.
+        Lastly the temporary mdl file is removed.
+        :return:
+        """
         orient_mdl_file = self.mdlFile + '.orientdb'
         shutil.copy2(self.mdlFile, orient_mdl_file)
 
@@ -39,6 +49,13 @@ class MDLImporter(object):
         os.remove(orient_mdl_file)
 
     def parseXML(self, xmlFile):
+        """
+        Parses passed in xmlFile and calls functions to create nodes and edges in
+        orientdb.
+
+        :param xmlFile:         xml file to import
+        :return:
+        """
         # this is a stack we maintain when traversing the xml tree
         attribute_stack = []
 
@@ -194,6 +211,12 @@ class MDLImporter(object):
                 pass
 
     def assignUniqueId(self, entityType):
+        """
+        Creates a unique id based on the entityType.
+
+        :param entityType:      name of the entity (ie TestMissions, RadioLinks, MDLRoot, etc)
+        :return: uid:           string representing a unique id
+        """
         uniqId = ''
         if entityType in self.uniqueIdentifiers.keys():
             self.uniqueIdentifiers[entityType] += 1
@@ -204,6 +227,11 @@ class MDLImporter(object):
 
 
     def uidAlreadyAssigned(self, element):
+        """
+        Checks if the element already has a unique id.
+        :param element:         element to check
+        :return:
+        """
         if 'uid' in element[element.keys()[0]].keys():
             return 1
         return 0
