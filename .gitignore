@@ -1,0 +1,12 @@
+# byte-compiled
+*.pyc
+
+# xml
+*.xml
+
+# log
+*.log
+
+# project settings
+.idea
+*pycache*

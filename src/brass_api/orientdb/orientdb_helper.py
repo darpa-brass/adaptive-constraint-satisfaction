@@ -10,6 +10,9 @@ from orientdb_sql import *
 
 
 class BrassOrientDBHelper(object):
+    """
+    Helper classes that provides functions to traverse an orientdb database.
+    """
     def __init__(self, database_name=None, config_file=None, orientdb_client=None):
         if orientdb_client is not None:
             self._orientdb_client = orientdb_client
@@ -20,9 +23,18 @@ class BrassOrientDBHelper(object):
                 self._orientdb_client = None
 
     def close_database(self):
+        """
+        Closes the database.
+        :return:
+        """
         self._orientdb_client.close_database()
 
     def open_database(self, over_write=False):
+        """
+        Opens a database.
+        :param over_write:
+        :return:
+        """
         self._orientdb_client.open_database(over_write)
 
     def get_connected_nodes(self, targetNode_rid, direction='in', edgetype='Containment', maxdepth=1, filterdepth=None, strategy='DEPTH_FIRST'):
@@ -136,6 +148,14 @@ class BrassOrientDBHelper(object):
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.get_node_by_rid')
 
     def get_nodes_by_properties(self, property_conditions=[]):
+        """
+        Get nodes that fit the property conditions specified.
+
+        :param property_conditions:         list of property condition strings in the form of:
+                                            name='MDL Description', description='This is a scenario 1'
+                                            Use orientdb_sql.condition_str() to help create condition strings.
+        :return:
+        """
         try:
             sql_cmd = select_sql(property_conditions)
             print sql_cmd
@@ -248,7 +268,13 @@ class BrassOrientDBHelper(object):
 
 
     def delete_node_by_rid(self, rid=None):
-        #delete vertex rid
+        """
+        Removes a node from the database with rid.
+        rid is a string that begins with a # followed by 2 numbers separated by a colon.
+
+        :param rid:         Remove a node with this rid. Examples: #1244:3, #30:0
+        :return:
+        """
         try:
             if len(self.get_node_by_rid(rid)) == 0:
                 print '[ERROR] Unable to delete node {0} because it does not exist in the database [SOURCE] {1}'.\
@@ -265,6 +291,12 @@ class BrassOrientDBHelper(object):
 
 
     def delete_nodes_by_rid(self, rid_list):
+        """
+        Removes multiple nodes each given by a rid string in the rid_list.
+
+        :param rid_list:            list of nodes to remove
+        :return:
+        """
         status = True
         try:
             # unfortunately the delete vertex command in orientdb doesn't let you delete a list of rids
@@ -277,6 +309,17 @@ class BrassOrientDBHelper(object):
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.delete_nodes_by_rid')
 
     def set_containment_relationship (self, parent_rid=None, child_rid=None, parent_conditions=[], child_conditions=[]):
+        """
+        Creates a Containment type of edge between parent node and child node using rids or search condition.
+
+                                        parent_node <- child_node
+
+        :param parent_rid:              rid of parent node
+        :param child_rid:               rid of child node
+        :param parent_conditions:       search conditions of parent node
+        :param child_conditions:        search conditions of child node
+        :return:
+        """
         src = None
         dst = None
 
@@ -300,6 +343,17 @@ class BrassOrientDBHelper(object):
             return False
 
     def set_reference_relationship (self, reference_rid=None, referent_rid=None, reference_condition=[], referent_condition=[]):
+        """
+        Creates a Reference type of edge between a reference node and a referent node.
+
+                                    reference node -> referent node
+
+        :param reference_rid:           rid of the reference node
+        :param referent_rid:            rid of the referent node
+        :param reference_condition:     search conditions of reference node
+        :param referent_condition:      search conditions of referent node
+        :return:
+        """
         src = None
         dst = None
 
@@ -322,19 +376,30 @@ class BrassOrientDBHelper(object):
         else:
             return ''
 
-    def remove_parent_child_relationship(self, parent_rid=None, child_rid=None, parent_condition=[], child_condition=[]):
+    def remove_parent_child_relationship(self, parent_rid=None, child_rid=None, parent_conditions=[], child_conditions=[]):
+        """
+        Removes Containment type of edge between a parent node and a child node.
+
+                            parent node <- child node
+
+        :param parent_rid:              rid of parent node
+        :param child_rid:               rid of child node
+        :param parent_conditions:       search conditions of parent node
+        :param child_conditions:        search conditions of child node
+        :return:
+        """
         src = None
         dst = None
 
         if parent_rid is not None:
             dst = parent_rid
-        elif len(parent_condition) > 0:
-            dst = select_sql('V', parent_condition)
+        elif len(parent_conditions) > 0:
+            dst = select_sql('V', parent_conditions)
 
         if child_rid is not None:
             src = child_rid
-        elif len(child_condition) > 0:
-            dst = select_sql('V', child_condition)
+        elif len(child_conditions) > 0:
+            dst = select_sql('V', child_conditions)
 
 
         if src is not None and dst is not None:
@@ -347,6 +412,17 @@ class BrassOrientDBHelper(object):
             return ''
 
     def remove_reference_relationship(self, reference_rid=None, referent_rid=None, reference_condition=[], referent_condition=[]):
+        """
+        Removes Reference type of edge between a reference node and a referent node.
+
+                                        reference node -> referent node
+
+        :param reference_rid:           rid of the reference node
+        :param referent_rid:            rid of the referent node
+        :param reference_condition:     search conditions of reference node
+        :param referent_condition:      search conditions of referent node
+        :return:
+        """
         src = None
         dst = None
 
@@ -371,6 +447,11 @@ class BrassOrientDBHelper(object):
 
 
     def create_node_class(self, name):
+        """
+        Creates a new type of vertex in the database.
+        :param name:        name of the new vertex class in string
+        :return:
+        """
         try:
             sql_cmd = create_class_sql(name, 'V')
             print sql_cmd
@@ -382,6 +463,11 @@ class BrassOrientDBHelper(object):
 
 
     def create_edge_class(self, name):
+        """
+        Creates a new type of edge in the database.
+        :param name:        name of the new edge class in string
+        :return:
+        """
         try:
             sql_cmd = create_class_sql(name, 'E')
             print sql_cmd
@@ -392,6 +478,12 @@ class BrassOrientDBHelper(object):
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.create_edge_class')
 
     def create_node(self, type, properties={}):
+        """
+        Creates a new node of a specific vertex type and with the properties defined by properties dictionary.
+        :param type:            string that specifies the type of vertex class
+        :param properties:      dictionary containing properties and values to set for the new node
+        :return:
+        """
         try:
             sql_cmd = insert_sql(type, **properties)
             print sql_cmd
@@ -405,7 +497,6 @@ class BrassOrientDBHelper(object):
 
     def run_query(self, sql):
         '''
-
         :param sql:     The sql string to run
         :return:
         '''

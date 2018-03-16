@@ -14,6 +14,9 @@ import pyorient
 from brass_api.common.exception_class import BrassException
 
 class BrassOrientDBClient(object):
+    """
+    Wraps the pyorient client and connection to orientdb.
+    """
     def __init__(self, database_name, configFile = 'config.json'):
         data_file= open(configFile, 'r')
         configMap = json.load(data_file)
@@ -37,6 +40,12 @@ class BrassOrientDBClient(object):
 
 
     def connect_server(self):
+        """
+        Connects to the orientdb server.
+        Must connect to the server first before
+        opening a database.
+        :return:
+        """
         try:
             self._session_id = self._client.connect(self._server_username, self._server_password)
         except:
@@ -45,13 +54,15 @@ class BrassOrientDBClient(object):
     def open_database(self, over_write=False):
         """
         Opens the orientDB database.
-        :argument:
+        :argument: over_write:          set to True to drop existing database and create a new one,
+                                        otherwise an existing database will be opened
         :return:
         """
 
         try:
             if over_write:
-                self.drop_database()
+                if self._client.db_exists(self._db_name):
+                    self.drop_database()
                 self.create_database()
             else:
                 if self._client.db_exists(self._db_name):
@@ -77,7 +88,6 @@ class BrassOrientDBClient(object):
     def drop_database(self):
         """
         Drops a database if it exists.
-
         :return:
         """
 
@@ -90,6 +100,10 @@ class BrassOrientDBClient(object):
             raise BrassOrientDBClient(sys.exc_info()[1], 'BrassOrientDBClient.drop_database')
 
     def create_database(self):
+        """
+        Creates a new orientdb database.
+        :return:
+        """
         self._client.db_create(self._db_name, pyorient.DB_TYPE_GRAPH)
         if self._db_password != None and self._db_username != None:
             self._client.command(
@@ -97,6 +111,11 @@ class BrassOrientDBClient(object):
             )
 
     def run_command(self, query_str):
+        """
+        Runs sql string commands by calling pyorient client.
+        :param query_str:
+        :return:
+        """
         return self._client.command(query_str)
 
 
