@@ -14,8 +14,9 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('/Users/di/Desktop/SwRI_Brass/adaptive-constraint-satisfaction/src'))
-#os.path.abspath('/Users/di/Desktop/SwRI_Brass/adaptive-constraint-satisfaction/src/brass_api')
+#sys.path.insert(0, os.path.abspath('/Users/di/Desktop/SwRI_Brass/adaptive-constraint-satisfaction/src'))
+sys.path.insert(0, os.path.abspath('../../src'))
+
 
 
 # -- Project information -----------------------------------------------------
