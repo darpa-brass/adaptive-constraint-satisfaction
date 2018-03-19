@@ -57,8 +57,9 @@ class MDLImporter(object):
         Parses passed in xmlFile and calls functions to create nodes and edges in
         orientdb.
 
-        :param xmlFile (str):         xml file to import
+        :param str xmlFile:         xml file to import
         :return:
+        :raises BrassException:     catches any parsing error and rethrows as BrassException
 
         """
         # this is a stack we maintain when traversing the xml tree
@@ -219,8 +220,8 @@ class MDLImporter(object):
         """
         Creates a unique id based on the entityType.
 
-        :param entityType:      name of the entity (ie TestMissions, RadioLinks, MDLRoot, etc)
-        :return uid:           string representing a unique id
+        :param str entityType:        name of the entity (ie TestMissions, RadioLinks, MDLRoot, etc)
+        :return:                      a unique id in string
         """
         uniqId = ''
         if entityType in self.uniqueIdentifiers.keys():
@@ -235,7 +236,7 @@ class MDLImporter(object):
         """
         Checks if the element already has a unique id.
         :param element:         element to check
-        :return:
+        :return:                True or False
 
         """
         if 'uid' in element[element.keys()[0]].keys():
@@ -249,8 +250,8 @@ def main(database, config, mdlfile, remotePlocal=None):
     Calls runExample() on the processor object.
     Closes the orientDB database.
 
-    :parma     database (str):     orientDB database name
-    :param     remotePlocal (str): remote or local database, not used currently
+    :param str database:          orientDB database name
+    :param str remotePlocal:      remote or local database, not used currently
     :return:
     """
 

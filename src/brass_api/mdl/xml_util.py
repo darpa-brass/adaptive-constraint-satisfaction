@@ -18,8 +18,8 @@ def create_tab_string(numberTabs):
     Print formatting function that creates a string consisting of
     tabs set by "numberTabs".
 
-    :param numberTabs:  Number of tabs
-    :return:            string
+    :param int numberTabs:  Number of tabs
+    :return:                A string containing tabs
     '''
     s = ''
     i = 1
@@ -37,9 +37,9 @@ def orient_record_to_xml(record, numberTabs):
     properties need to be written out as xml attributes and not as xml tag text.
 
 
-    :param      record:  an orientDB record containing data about a vertex
-    :param      numberTabs:       number of tabs to indent before xml text
-    :return:                            string
+    :param      OrientRecord record:  an orientDB record containing data about a vertex
+    :param      int numberTabs:       number of tabs to indent before xml text
+    :return:    A xml string of the record
 
     """
     xml_str_list = []
@@ -79,8 +79,8 @@ def add_mdl_root_tag_attr(mdl_schema):
     Creates a string for <MDLRoot> that includes tmats xsd files mdl schema xsd files.
     These attributes are removed during importing because they caused xml parsing to fail.
 
-    :param mdl_schema:      name of the mdl schema file
-    :return:
+    :param str mdl_schema:      name of the mdl schema file
+    :return:                    a <MDLRoot> string containing all the includes and correct MDL schema version
     """
     mdl_root_str = '<MDLRoot xmlns="http://www.wsmr.army.mil/RCC/schemas/MDL"\
     xmlns:tmatsCommon="http://www.wsmr.army.mil/RCC/schemas/TMATS/TmatsCommonTypes"\
@@ -97,8 +97,8 @@ def remove_mdl_root_tag_attr(xmlfile):
     as all the inclusions of tmats xsd files causes parsing to fail.
     The modified xml is saved inline.
 
-    :param xmlfile:     name and path of xml file
-    :return mdl_chema:
+    :param str xmlfile:     name and path of xml file
+    :return:                the string "<MDLRoot>"
     """
     import fileinput, re
 
@@ -121,17 +121,19 @@ def remove_mdl_root_tag_attr(xmlfile):
 
 def validate_mdl(xmlfile_path, mdl_schema):
     """
+    Validates a xml file given by xmlfile_path against the mdl_schema.
 
-    :param xmlfile_path:        name and path of xml file to validate
-    :param mdl_schema:          name of mdl_schema
-    :return:
+    :param str xmlfile_path:        name and path of xml file to validate
+    :param str mdl_schema:          name of mdl_schema
+    :return Boolean status:         result of validation (True or False)
+    :raises BrassException:         throws any exception encountered
     """
     from lxml import etree
 
     BASE_DIR = os.path.dirname(os.path.realpath(__file__))
     mdl_schema = "{0}/../include/mdl_xsd/{1}".format(BASE_DIR, mdl_schema)
 
-
+    status = None
     try:
         schema_doc = etree.parse(mdl_schema)
         schema = etree.XMLSchema(schema_doc)
@@ -139,10 +141,14 @@ def validate_mdl(xmlfile_path, mdl_schema):
         with open(xmlfile_path) as f:
             doc = etree.parse(f)
 
-        schema.assertValid(doc)
+        status = schema.validate(doc)
 
     except etree.XMLSchemaParseError as e:
+        status = False
         raise BrassException('Invalid MDL Schema File: ' + e.message, 'xml_util.validate_mdl')
     except etree.DocumentInvalid as e:
+        status = False
         raise BrassException('Invalide MDL XML File: ' + e.message, 'xml_util.validate_mdl')
+    finally:
+        return status
 

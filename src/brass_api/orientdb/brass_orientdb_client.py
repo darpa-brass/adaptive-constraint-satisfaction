@@ -16,11 +16,16 @@ from brass_api.common.exception_class import BrassException
 class BrassOrientDBClient(object):
     """
     Wraps the pyorient client and connection to orientdb.
-    :param      database_name:
-    :parma      configFile:
-    :return:
+
     """
     def __init__(self, database_name, configFile = 'config.json'):
+        """
+
+        :param str database_name:       name of orientdb database
+        :param str configFile:          name and/or path of config.json to use. config.json contains user credentials
+                                        for the orientdb server and database
+        """
+
         data_file= open(configFile, 'r')
         configMap = json.load(data_file)
         data_file.close()
@@ -45,10 +50,11 @@ class BrassOrientDBClient(object):
     def connect_server(self):
         """
         Connects to the orientdb server.
-        Must connect to the server first before
-        opening a database.
-        :param:
-        :return:
+        Must connect to the server first before opening a database.
+
+        :param:     None
+        :return:    None
+        :raises BrassException:     source of the exception is set to the name of this function
         """
         try:
             self._session_id = self._client.connect(self._server_username, self._server_password)
@@ -58,9 +64,11 @@ class BrassOrientDBClient(object):
     def open_database(self, over_write=False):
         """
         Opens the orientDB database.
-        :param over_write:          set to True to drop existing database and create a new one,
-                                        otherwise an existing database will be opened
-        :return:
+
+        :param boolean over_write:          set to True to drop existing database and create a new one,
+                                    set to False top open an existing database if it exists
+        :return:                    None
+        :raises BrassException:     source of the exception is set to the name of this function
         """
 
         try:
@@ -80,8 +88,10 @@ class BrassOrientDBClient(object):
     def close_database(self):
         """
         Closes the orientDB database.
-        :param:
-        :return:
+
+        :param:         None
+        :return:        None
+        :raises BrassException:     source of the exception is set to the name of this function
         """
 
         try:
@@ -92,8 +102,10 @@ class BrassOrientDBClient(object):
     def drop_database(self):
         """
         Drops a database if it exists.
-        :param:
-        :return:
+
+        :param:     None
+        :return:    None
+        :raises BrassException:     source of the exception is set to the name of this function
         """
 
         try:
@@ -107,8 +119,10 @@ class BrassOrientDBClient(object):
     def create_database(self):
         """
         Creates a new orientdb database.
-        :param:
-        :return:
+
+        :param:                     None
+        :return:                    None
+        :raises BrassException:     source of the exception is set to the name of this function
         """
         self._client.db_create(self._db_name, pyorient.DB_TYPE_GRAPH)
         if self._db_password != None and self._db_username != None:
@@ -119,8 +133,9 @@ class BrassOrientDBClient(object):
     def run_command(self, query_str):
         """
         Runs sql string commands by calling pyorient client.
-        :pram query_str:
-        :return:
+
+        :param str query_str:       sql query command string
+        :return:                    results of calling pyorient client with the query string
         """
         return self._client.command(query_str)
 

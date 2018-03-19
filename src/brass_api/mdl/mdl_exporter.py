@@ -13,7 +13,7 @@ Author: Di Yao (di.yao@vanderbilt.edu)
 
 """
 
-#from brass_api.orientdb.brass_orientdb_client import *
+
 from brass_api.orientdb.orientdb_helper import *
 import xml_util
 
@@ -25,11 +25,11 @@ TODO:
 class MDLExporter(object):
     """
 
-    :param databaseName:
-    :param configFile:
-    :return:
+    This is the main class used for exporting an orientdb database to a MDL file.
+
     """
     def __init__(self, databaseName, configFile = 'config.json'):
+
         #self.orientDB_helper = BrassOrientDBHelper( orientdb_client=BrassOrientDBClient(databaseName, configFile) )
         self.orientDB_helper = BrassOrientDBHelper(database_name=databaseName, config_file=configFile)
         self.xmlFile = open(databaseName +'_Exported_MDL.xml', 'w')
@@ -37,14 +37,15 @@ class MDLExporter(object):
 
     def print_node(self, record, numberTabs=0):
         """
+
         Calls printOrientRecord() on a vertex to convert its data
         to xml and write to a file.
         Recursively calls printNode on child vertices via "Containment" edge.
         Closing xml tag is written in this function because closing tag needs
         to come after all child xml elments have been written to file.
 
-        :param      record (OrientRecord):  an orientDB record containing data about a vertex
-        :param      numberTabs (int):       number of tabs to indent before xml text
+        :param      OrientRecord record:  an orientDB record containing data about a vertex
+        :param      int numberTabs:       number of tabs to indent before xml text
         :return:
         """
 
@@ -71,8 +72,9 @@ class MDLExporter(object):
         Calls the printNode function on the root vertex to
         traverse and print xml of child vertices to a file.
 
-        :argument:
-        :return:
+        :param:     none
+        :return:    none
+        :raises BrassException:
         """
 
         try:
@@ -86,7 +88,7 @@ class MDLExporter(object):
                 #    xml_util.validate_mdl(self.xmlFile.name, mdl_schema)
 
         except:
-            print "Unexpected error:", sys.exc_info()[1]
+            raise BrassException(sys.exc_info()[1], 'MDLExporter.export_to_mdl')
 
 
 
@@ -96,8 +98,8 @@ def main(database, config, remotePlocal=None):
     Calls runExample() on the processor object.
     Closes the orientDB database.
 
-    :param      database (str):     orientDB database name
-    :param      remotePlocal (str): remote or local database, not used currently
+    :param      str database:     orientDB database name
+    :param      str remotePlocal: remote or local database, not used currently
     :return:
     """
 

@@ -12,6 +12,12 @@ class BrassException(Exception):
     """ Raise for exceptions encountered with brass api and orientdb """
 
     def __init__(self, message, source=''):
+        """
+        Constructor
+
+        :param str message:     exception message
+        :param str source:      which function threw the exception
+        """
         super(BrassException, self).__init__(message)
         self.message = message
         self.source = source
