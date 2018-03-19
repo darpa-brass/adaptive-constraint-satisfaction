@@ -46,19 +46,28 @@ class BrassOrientDBHelper(object):
         Traverse and retrieve all records/vertices connected to the target record/vertices by the
         egdge/relationship set by "edgetype". Traversal depth is set by "maxdepth".
         Direction of traversal is set by "direction". "filterdepth" restricts the level of records
-        to return. Below are some examples
-
-        MDLRoot <- TestMissions <- TestMission <- RadioLinks
-                                               <- QoSPolicies
+        to return. Below is an example topology along with a table showing query results for various
+        parameter values:
 
 
-        | targetNode_rid    |   direction   |   maxdepth    |   filterdepth |   returns                          |
+        `MDLRoot <- TestMissions <- TestMission <- RadioLinks <- QoSPolicies`
 
-        |TestMissions       |   in          |   2           |   >0          |TestMission, RadioLinks, QoSPolicies|
-        |TestMissions       |   in          |   2           |   =2          |RadioLinks, QoSPolicies             |
-        |TestMissions       |   in          |   2           |   =1          |TestMission                         |
-        |RadioLinks         |   out         |   3           |   >0          |TestMission, TestMissions, MDLRoot  |
-        |RadioLinks         |   out         |   3           |   =3          |MDLRoot                             |
+
+
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        | targetNode      | direction   | max      | filter       |     returns                        |
+        | rid             |             | depth    | depth        |                                    |
+        +=================+=============+==========+==============+====================================+
+        |TestMissions     |     in      |  2       |  >0          |TestMission, RadioLinks, QoSPolicies|
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        |TestMissions     |     in      |  2       |  =2          |RadioLinks, QoSPolicies             |
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        |TestMissions     |     in      | 2        |  =1          |TestMission                         |
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        |RadioLinks       |     out     | 3        |  >0          |TestMission, TestMissions, MDLRoot  |
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        |RadioLinks       |     out     | 3        |  =3          |MDLRoot                             |
+        +-----------------+-------------+----------+--------------+------------------------------------+
 
 
         :param str targetNode_rid:  orientdb record id of the starting record/vertex
