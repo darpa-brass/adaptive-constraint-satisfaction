@@ -16,6 +16,9 @@ from brass_api.common.exception_class import BrassException
 class BrassOrientDBClient(object):
     """
     Wraps the pyorient client and connection to orientdb.
+    :param      database_name:
+    :parma      configFile:
+    :return:
     """
     def __init__(self, database_name, configFile = 'config.json'):
         data_file= open(configFile, 'r')
@@ -44,6 +47,7 @@ class BrassOrientDBClient(object):
         Connects to the orientdb server.
         Must connect to the server first before
         opening a database.
+        :param:
         :return:
         """
         try:
@@ -54,7 +58,7 @@ class BrassOrientDBClient(object):
     def open_database(self, over_write=False):
         """
         Opens the orientDB database.
-        :argument: over_write:          set to True to drop existing database and create a new one,
+        :param over_write:          set to True to drop existing database and create a new one,
                                         otherwise an existing database will be opened
         :return:
         """
@@ -76,7 +80,7 @@ class BrassOrientDBClient(object):
     def close_database(self):
         """
         Closes the orientDB database.
-        :argument:
+        :param:
         :return:
         """
 
@@ -88,6 +92,7 @@ class BrassOrientDBClient(object):
     def drop_database(self):
         """
         Drops a database if it exists.
+        :param:
         :return:
         """
 
@@ -102,6 +107,7 @@ class BrassOrientDBClient(object):
     def create_database(self):
         """
         Creates a new orientdb database.
+        :param:
         :return:
         """
         self._client.db_create(self._db_name, pyorient.DB_TYPE_GRAPH)
@@ -113,7 +119,7 @@ class BrassOrientDBClient(object):
     def run_command(self, query_str):
         """
         Runs sql string commands by calling pyorient client.
-        :param query_str:
+        :pram query_str:
         :return:
         """
         return self._client.command(query_str)

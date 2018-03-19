@@ -12,6 +12,7 @@ from brass_api.common.exception_class import *
 
 SKIP_PROPERTY_TAGS = ['uid', 'ID', 'IDREF', 'in_Containment', 'out_Containment', 'in_Reference', 'out_Reference', 'schema']
 
+
 def create_tab_string(numberTabs):
     '''
     Print formatting function that creates a string consisting of
@@ -30,15 +31,14 @@ def create_tab_string(numberTabs):
 
 def orient_record_to_xml(record, numberTabs):
     """
-    Serializes OrientRecord to xml for a vertex and writes to the xml file.
+    Serializes OrientRecord to xml from a vertex and writes to the xml file.
     Serialization involves traversing through a vertex's properties.
     Opening xml tag is written in this function because "ID" and "IDREF"
     properties need to be written out as xml attributes and not as xml tag text.
 
 
-    :param:
-                record (OrientRecord):  an orientDB record containing data about a vertex
-                numberTabs (int):       number of tabs to indent before xml text
+    :param      record:  an orientDB record containing data about a vertex
+    :param      numberTabs:       number of tabs to indent before xml text
     :return:                            string
 
     """
@@ -72,6 +72,8 @@ def orient_record_to_xml(record, numberTabs):
 The root tag in a MDL XML file has some attributes that causes exceptions for lxml parser.
 Therefore these attributes need to be removed by importer and added back in by the exporter. 
 '''
+
+
 def add_mdl_root_tag_attr(mdl_schema):
     """
     Creates a string for <MDLRoot> that includes tmats xsd files mdl schema xsd files.
@@ -88,6 +90,7 @@ def add_mdl_root_tag_attr(mdl_schema):
     xsi:schemaLocation="http://www.wsmr.army.mil/RCC/schemas/MDL {0}">'.format(mdl_schema)
     return mdl_root_str
 
+
 def remove_mdl_root_tag_attr(xmlfile):
     """
     Removes the xml attributes of the <MDLRoot> in the xmlfile
@@ -95,7 +98,7 @@ def remove_mdl_root_tag_attr(xmlfile):
     The modified xml is saved inline.
 
     :param xmlfile:     name and path of xml file
-    :return:
+    :return mdl_chema:
     """
     import fileinput, re
 

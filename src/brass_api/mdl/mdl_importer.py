@@ -17,6 +17,9 @@ from brass_api.orientdb.orientdb_sql import condition_str, select_sql
 class MDLImporter(object):
     """
     Class responsible for importing mdl xml files into an orientdb database.
+    :param      databaseName:
+    :param      mdlFile:
+    :param      configFile:
     """
     def __init__(self, databaseName, mdlFile, configFile = 'config.json'):
 
@@ -25,7 +28,7 @@ class MDLImporter(object):
 
         self.orientDB_helper = BrassOrientDBHelper(database_name=databaseName, config_file=configFile)
         self.mdlFile = mdlFile
-        self.orientDB_helper.open_database(over_write=True)
+        self.orientDB_helper.open_database(over_write=False)
 
 
     def import_mdl(self):
@@ -35,6 +38,7 @@ class MDLImporter(object):
         <MDLRoot>.
         The temporary mdl file is then valided against mdl schema and parsed.
         Lastly the temporary mdl file is removed.
+        :param:
         :return:
         """
         orient_mdl_file = self.mdlFile + '.orientdb'
@@ -53,8 +57,9 @@ class MDLImporter(object):
         Parses passed in xmlFile and calls functions to create nodes and edges in
         orientdb.
 
-        :param xmlFile:         xml file to import
+        :param xmlFile (str):         xml file to import
         :return:
+
         """
         # this is a stack we maintain when traversing the xml tree
         attribute_stack = []
@@ -215,7 +220,7 @@ class MDLImporter(object):
         Creates a unique id based on the entityType.
 
         :param entityType:      name of the entity (ie TestMissions, RadioLinks, MDLRoot, etc)
-        :return: uid:           string representing a unique id
+        :return uid:           string representing a unique id
         """
         uniqId = ''
         if entityType in self.uniqueIdentifiers.keys():
@@ -231,10 +236,12 @@ class MDLImporter(object):
         Checks if the element already has a unique id.
         :param element:         element to check
         :return:
+
         """
         if 'uid' in element[element.keys()[0]].keys():
             return 1
         return 0
+
 
 def main(database, config, mdlfile, remotePlocal=None):
     """
@@ -242,15 +249,14 @@ def main(database, config, mdlfile, remotePlocal=None):
     Calls runExample() on the processor object.
     Closes the orientDB database.
 
-    :argument:
-                database (str):     orientDB database name
-                remotePlocal (str): remote or local database, not used currently
+    :parma     database (str):     orientDB database name
+    :param     remotePlocal (str): remote or local database, not used currently
     :return:
     """
 
     import os
     BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-    config_file = "{0}/../{1}".format(BASE_DIR, config)
+    config_file = "{0}\..\..\..\{1}".format(BASE_DIR, config)
     if not os.path.exists(config_file):
         print 'Config file does NOT exist.'
         return

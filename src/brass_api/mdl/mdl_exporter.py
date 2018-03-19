@@ -23,6 +23,12 @@ TODO:
 [2] Move main() to a separate test program.
 '''
 class MDLExporter(object):
+    """
+
+    :param databaseName:
+    :param configFile:
+    :return:
+    """
     def __init__(self, databaseName, configFile = 'config.json'):
         #self.orientDB_helper = BrassOrientDBHelper( orientdb_client=BrassOrientDBClient(databaseName, configFile) )
         self.orientDB_helper = BrassOrientDBHelper(database_name=databaseName, config_file=configFile)
@@ -37,9 +43,8 @@ class MDLExporter(object):
         Closing xml tag is written in this function because closing tag needs
         to come after all child xml elments have been written to file.
 
-        :argument:
-                    record (OrientRecord):  an orientDB record containing data about a vertex
-                    numberTabs (int):       number of tabs to indent before xml text
+        :param      record (OrientRecord):  an orientDB record containing data about a vertex
+        :param      numberTabs (int):       number of tabs to indent before xml text
         :return:
         """
 
@@ -81,7 +86,7 @@ class MDLExporter(object):
                 #    xml_util.validate_mdl(self.xmlFile.name, mdl_schema)
 
         except:
-          print "Unexpected error:", sys.exc_info()[1]
+            print "Unexpected error:", sys.exc_info()[1]
 
 
 
@@ -91,9 +96,8 @@ def main(database, config, remotePlocal=None):
     Calls runExample() on the processor object.
     Closes the orientDB database.
 
-    :argument:
-                database (str):     orientDB database name
-                remotePlocal (str): remote or local database, not used currently
+    :param      database (str):     orientDB database name
+    :param      remotePlocal (str): remote or local database, not used currently
     :return:
     """
 

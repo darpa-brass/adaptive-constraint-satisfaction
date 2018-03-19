@@ -12,8 +12,9 @@ Author: Di Yao (di.yao@vanderbilt.edu), Joseph Hite (joseph.e.hite@vanderbilt.ed
 
 """
 
-sys.path.append('src')
 import sys
+sys.path.append('src')
+
 from brass_api.brass_orientdb.brass_orientdb_helper import BrassOrientDBHelper
 from brass_api.brass_orientdb.brass_exceptions import BrassException
 # from brass_mdl.brass_mdl_exporter import MDLExporter

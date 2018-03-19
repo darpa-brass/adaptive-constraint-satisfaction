@@ -12,6 +12,10 @@ from orientdb_sql import *
 class BrassOrientDBHelper(object):
     """
     Helper classes that provides functions to traverse an orientdb database.
+    :param database_name:
+    :param config_file:
+    :param orientdb_client:
+    :return:
     """
     def __init__(self, database_name=None, config_file=None, orientdb_client=None):
         if orientdb_client is not None:
@@ -25,6 +29,7 @@ class BrassOrientDBHelper(object):
     def close_database(self):
         """
         Closes the database.
+        :param:
         :return:
         """
         self._orientdb_client.close_database()
