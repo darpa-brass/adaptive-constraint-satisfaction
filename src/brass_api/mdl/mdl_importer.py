@@ -1,7 +1,9 @@
 """
-mdl_importer.py
-Contains an importer class that parses an MDL xml file and
+
+Module contains an importer class that parses an MDL xml file and
 creates an orientdb database from it.
+
+Author: Di Yao (di.yao@vanderbilt.edu)
 
 """
 

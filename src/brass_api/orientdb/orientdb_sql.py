@@ -1,9 +1,9 @@
 """
-orientdb_sql.py
 
-This file contains functions that create sql command strings for orientdb.
+Module contains functions that create sql command strings for orientdb.
 
 Author: Di Yao (di.yao@vanderbilt.edu)
+
 """
 
 

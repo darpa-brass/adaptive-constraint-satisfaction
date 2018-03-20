@@ -1,8 +1,7 @@
 """
-mdlExporter.py
 
-Traverses an orientDB database and exports the information
-to an MDL xml file.
+Module contains an exporter class that traverses an orientDB database and
+exports the information to an MDL xml file.
 
 Note:   Only "Containment" type of edges are used in the exporter.
         The "Reference" edge is not needed since the XML needs

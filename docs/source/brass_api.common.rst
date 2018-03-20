@@ -1,10 +1,10 @@
-brass\_api.common package
+Common Package
 =========================
 
 Submodules
 ----------
 
-brass\_api.common.exception\_class module
+Exception Class module
 -----------------------------------------
 
 .. automodule:: brass_api.common.exception_class

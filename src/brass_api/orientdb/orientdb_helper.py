@@ -1,4 +1,8 @@
 """
+
+Module contains helper class for retrieving nodes and edges from orientdb database.
+The class hides underlying orientdb sql commands.
+
 Author: Di Yao (di.yao@vanderbilt.edu)
 """
 

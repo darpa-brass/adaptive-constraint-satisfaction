@@ -1,7 +1,6 @@
 """
-exception_class.py
 
-This file contains exception class thrown by brass api classes.
+Module contains exception class thrown by brass api classes.
 "message" is the error message and "source" is the class and function that
 throws the exception.
 

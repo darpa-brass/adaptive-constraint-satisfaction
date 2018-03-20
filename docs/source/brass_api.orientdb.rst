@@ -1,10 +1,10 @@
-brass\_api.orientdb package
+OrientDB Package
 ===========================
 
 Submodules
 ----------
 
-brass\_api.orientdb.brass\_orientdb\_client module
+BRASS OrientDB Client Module
 --------------------------------------------------
 
 .. automodule:: brass_api.orientdb.brass_orientdb_client
@@ -12,7 +12,7 @@ brass\_api.orientdb.brass\_orientdb\_client module
     :undoc-members:
     :show-inheritance:
 
-brass\_api.orientdb.orientdb\_helper module
+OrientDB Helper Module
 -------------------------------------------
 
 .. automodule:: brass_api.orientdb.orientdb_helper
@@ -20,7 +20,7 @@ brass\_api.orientdb.orientdb\_helper module
     :undoc-members:
     :show-inheritance:
 
-brass\_api.orientdb.orientdb\_sql module
+OrientDB SQL Module
 ----------------------------------------
 
 .. automodule:: brass_api.orientdb.orientdb_sql
@@ -29,10 +29,3 @@ brass\_api.orientdb.orientdb\_sql module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: brass_api.orientdb
-    :members:
-    :undoc-members:
-    :show-inheritance:

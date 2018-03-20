@@ -10,10 +10,9 @@ Welcome to Adaptive Constraint Satisfaction BRASS APIs's documentation!
    :maxdepth: 5
    :caption: Contents:
 
-   brass_api.rst
-   brass_api.common.rst
-   brass_api.mdl.rst
-   brass_api.orientdb.rst
+   Common Package <brass_api.common.rst>
+   MDL Package <brass_api.mdl.rst>
+   OrientDB Package <brass_api.orientdb.rst>
 
 Indices and tables
 ==================

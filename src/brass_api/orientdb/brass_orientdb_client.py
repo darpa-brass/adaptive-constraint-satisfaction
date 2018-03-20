@@ -1,6 +1,6 @@
 """
 
-Defines a class called BrassOrientDBClient that wraps
+Module defines a class called BrassOrientDBClient that wraps
 connecting to an orientDB server and database.
 
 

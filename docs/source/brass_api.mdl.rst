@@ -1,10 +1,10 @@
-brass\_api.mdl package
+MDL package
 ======================
 
 Submodules
 ----------
 
-brass\_api.mdl.mdl\_exporter module
+MDL Exporter Module
 -----------------------------------
 
 .. automodule:: brass_api.mdl.mdl_exporter
@@ -12,7 +12,7 @@ brass\_api.mdl.mdl\_exporter module
     :undoc-members:
     :show-inheritance:
 
-brass\_api.mdl.mdl\_importer module
+MDL Importer Module
 -----------------------------------
 
 .. automodule:: brass_api.mdl.mdl_importer
@@ -20,7 +20,7 @@ brass\_api.mdl.mdl\_importer module
     :undoc-members:
     :show-inheritance:
 
-brass\_api.mdl.xml\_util module
+XML Utility Module
 -------------------------------
 
 .. automodule:: brass_api.mdl.xml_util
@@ -29,10 +29,4 @@ brass\_api.mdl.xml\_util module
     :show-inheritance:
 
 
-Module contents
----------------
 
-.. automodule:: brass_api.mdl
-    :members:
-    :undoc-members:
-    :show-inheritance:

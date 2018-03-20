@@ -1,7 +1,6 @@
 """
-xml_util.py
 
-Contains xml serialization functions and xml validation function.
+Module contains xml serialization functions and xml validation function.
 
 Author: Di Yao (di.yao@vanderbilt.edu)
 """
@@ -122,6 +121,8 @@ def remove_mdl_root_tag_attr(xmlfile):
 def validate_mdl(xmlfile_path, mdl_schema):
     """
     Validates a xml file given by xmlfile_path against the mdl_schema.
+
+    Todo: Still to need to make this work for the MDL exporter.
 
     :param str xmlfile_path:        name and path of xml file to validate
     :param str mdl_schema:          name of mdl_schema
