@@ -13,10 +13,3 @@ Exception Class module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: brass_api.common
-    :members:
-    :undoc-members:
-    :show-inheritance:
