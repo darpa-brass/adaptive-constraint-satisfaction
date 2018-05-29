@@ -1,4 +1,8 @@
 """
+
+Module contains helper class for retrieving nodes and edges from orientdb database.
+The class hides underlying orientdb sql commands.
+
 Author: Di Yao (di.yao@vanderbilt.edu)
 """
 
@@ -12,10 +16,7 @@ from orientdb_sql import *
 class BrassOrientDBHelper(object):
     """
     Helper classes that provides functions to traverse an orientdb database.
-    :param database_name:
-    :param config_file:
-    :param orientdb_client:
-    :return:
+
     """
     def __init__(self, database_name=None, config_file=None, orientdb_client=None):
         if orientdb_client is not None:
@@ -29,16 +30,18 @@ class BrassOrientDBHelper(object):
     def close_database(self):
         """
         Closes the database.
-        :param:
-        :return:
+
+        :param:         None
+        :return:        None
         """
         self._orientdb_client.close_database()
 
     def open_database(self, over_write=False):
         """
         Opens a database.
-        :param over_write:
-        :return:
+
+        :param boolean over_write:      set to true to overwrite the database or false to open the existing database
+        :return:                        None
         """
         self._orientdb_client.open_database(over_write)
 
@@ -47,28 +50,37 @@ class BrassOrientDBHelper(object):
         Traverse and retrieve all records/vertices connected to the target record/vertices by the
         egdge/relationship set by "edgetype". Traversal depth is set by "maxdepth".
         Direction of traversal is set by "direction". "filterdepth" restricts the level of records
-        to return. Below are some examples
-
-        MDLRoot <- TestMissions <- TestMission <- RadioLinks
-                                               <- QoSPolicies
+        to return. Below is an example topology along with a table showing query results for various
+        parameter values:
 
 
-        | targetNode_rid    |   direction   |   maxdepth    |   filterdepth |   returns                          |
-
-        |TestMissions       |   in          |   2           |   >0          |TestMission, RadioLinks, QoSPolicies|
-        |TestMissions       |   in          |   2           |   =2          |RadioLinks, QoSPolicies             |
-        |TestMissions       |   in          |   2           |   =1          |TestMission                         |
-        |RadioLinks         |   out         |   3           |   >0          |TestMission, TestMissions, MDLRoot  |
-        |RadioLinks         |   out         |   3           |   =3          |MDLRoot                             |
+        `MDLRoot <- TestMissions <- TestMission <- RadioLinks <- QoSPolicies`
 
 
-        :param targetNode_rid:  orientdb record id of the starting record/vertex
-        :param direction:       Direction of the edge/relationship
-        :param edgetype:        The relationship to use for traversal
-        :param maxdepth:        Defines the maximum depth of the traversal
-        :param filterdepth:     Defines the depth of the records to return. If none is set, then will return
-                                records up to the maxdepth (>0)
-        :return:                orientdb record objects
+
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        | targetNode      | direction   | max      | filter       |     returns                        |
+        | rid             |             | depth    | depth        |                                    |
+        +=================+=============+==========+==============+====================================+
+        |TestMissions     |     in      |  2       |  >0          |TestMission, RadioLinks, QoSPolicies|
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        |TestMissions     |     in      |  2       |  =2          |RadioLinks, QoSPolicies             |
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        |TestMissions     |     in      | 2        |  =1          |TestMission                         |
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        |RadioLinks       |     out     | 3        |  >0          |TestMission, TestMissions, MDLRoot  |
+        +-----------------+-------------+----------+--------------+------------------------------------+
+        |RadioLinks       |     out     | 3        |  =3          |MDLRoot                             |
+        +-----------------+-------------+----------+--------------+------------------------------------+
+
+
+        :param str targetNode_rid:  orientdb record id of the starting record/vertex
+        :param str direction:       Direction of the edge/relationship
+        :param str edgetype:        The relationship to use for traversal
+        :param int maxdepth:        Defines the maximum depth of the traversal
+        :param int filterdepth:     Defines the depth of the records to return. If none is set, then will return records up to the maxdepth (>0)
+        :return:                    list of orientdb record objects
+        :raises BrassException: source of exception is set to the function name
         '''
 
         if targetNode_rid is None:
@@ -109,9 +121,9 @@ class BrassOrientDBHelper(object):
         '''
         Retrieves all records/vertices of a specific type.
 
-        :param type:    The type of record/vertex to retrieve
-                        e.g. TestMission, RadioLink, QoSPolicy
-        :return:        orientdb record objects
+        :param str type:    The type of record/vertex to retrieve e.g. TestMission, RadioLink, QoSPolicy
+        :return:            list of orientdb record objects
+        :raises BrassException: source of exception is set to the function name
         '''
 
         if type is None:
@@ -135,8 +147,9 @@ class BrassOrientDBHelper(object):
         '''
         Retrieves a record/vertex that has the targetNode_rid.
 
-        :param targetNode_rid:  orientdb record id of a record/vertex
-        :return:                orientdb record objects
+        :param str targetNode_rid:  orientdb record id of a record/vertex
+        :return:                    list of orientdb record objects
+        :raises BrassException: source of exception is set to the function name
         '''
 
         # sql command
@@ -156,10 +169,11 @@ class BrassOrientDBHelper(object):
         """
         Get nodes that fit the property conditions specified.
 
-        :param property_conditions:         list of property condition strings in the form of:
+        :param list property_conditions:         list of property condition strings in the form of:
                                             name='MDL Description', description='This is a scenario 1'
                                             Use orientdb_sql.condition_str() to help create condition strings.
-        :return:
+        :return:                            list of orient record objects
+        :raises BrassException:             source of exception is set to the function name
         """
         try:
             sql_cmd = select_sql(property_conditions)
@@ -178,9 +192,10 @@ class BrassOrientDBHelper(object):
 
         targetNode_rid <- child
 
-        :param targetNode_rid:  target record/vertex
-        :param edgetype:        edge type
-        :return:                None or orientdb record objects
+        :param str targetNode_rid:  target record/vertex
+        :param str edgetype:        edge type
+        :return:                    None or orientdb record objects
+        :raises BrassException:     source of exception is set to the function name
         '''
 
         try:
@@ -199,9 +214,10 @@ class BrassOrientDBHelper(object):
 
         parent <- targetNode_rid
 
-        :param targetNode_rid:  target record/vertex
-        :param edgetype:        edge type
-        :return:                None or orientdb record objects
+        :param str targetNode_rid:      target record/vertex
+        :param str edgetype:            edge type
+        :return:                        None or orientdb record objects
+        :raises BrassException:             source of exception is set to the function name
         '''
 
         try:
@@ -220,8 +236,9 @@ class BrassOrientDBHelper(object):
         '''
         Retrieves all the nodes that references targetNode_rid.
 
-        :param targetNode_rid:
-        :return:
+        :param str targetNode_rid:          target node's rid
+        :return:                            list of orientdb records
+        :raises BrassException:             source of exception is set to the function name
         '''
 
         try:
@@ -235,8 +252,9 @@ class BrassOrientDBHelper(object):
         '''
         Retrieves the node that targetNode_rid refers to.
 
-        :param targetNode_rid:
-        :return:
+        :param str targetNode_rid:      target node's rid
+        :return:                        list of orient record objects
+        :raises BrassException:             source of exception is set to the function name
         '''
 
         try:
@@ -251,10 +269,10 @@ class BrassOrientDBHelper(object):
         Updates the target record/vertex (targetNode_rid) by the properties and corresponding values
         specified in args.
 
-        :param targetNode_rid:      The record/vertex to update.
-        :param args:                List of strings that contains the properties and values to set.
-                                    e.g. EncryptionKeyID='gabah gabah', Name='gabah gabah'
-        :return:
+        :param str targetNode_rid:      The record/vertex to update.
+        :param list args:               List of strings that contains the properties and values to set (e.g. EncryptionKeyID='gabah gabah', Name='gabah gabah')
+        :return:                        None
+        :raises BrassException:         source of exception is set to the function name
         '''
 
         #sql command
@@ -277,8 +295,9 @@ class BrassOrientDBHelper(object):
         Removes a node from the database with rid.
         rid is a string that begins with a # followed by 2 numbers separated by a colon.
 
-        :param rid:         Remove a node with this rid. Examples: #1244:3, #30:0
+        :param str rid:                     Remove a node with this rid. Examples: #1244:3, #30:0
         :return:
+        :raises BrassException:             source of exception is set to the function name
         """
         try:
             if len(self.get_node_by_rid(rid)) == 0:
@@ -299,8 +318,9 @@ class BrassOrientDBHelper(object):
         """
         Removes multiple nodes each given by a rid string in the rid_list.
 
-        :param rid_list:            list of nodes to remove
+        :param list rid_list:            list of nodes to remove
         :return:
+        :raises BrassException:             source of exception is set to the function name
         """
         status = True
         try:
@@ -319,11 +339,12 @@ class BrassOrientDBHelper(object):
 
                                         parent_node <- child_node
 
-        :param parent_rid:              rid of parent node
-        :param child_rid:               rid of child node
-        :param parent_conditions:       search conditions of parent node
-        :param child_conditions:        search conditions of child node
+        :param str parent_rid:              rid of parent node
+        :param str child_rid:               rid of child node
+        :param str parent_conditions:       search conditions of parent node
+        :param str child_conditions:        search conditions of child node
         :return:
+        :raises BrassException:             source of exception is set to the function name
         """
         src = None
         dst = None
@@ -353,11 +374,12 @@ class BrassOrientDBHelper(object):
 
                                     reference node -> referent node
 
-        :param reference_rid:           rid of the reference node
-        :param referent_rid:            rid of the referent node
-        :param reference_condition:     search conditions of reference node
-        :param referent_condition:      search conditions of referent node
+        :param str reference_rid:           rid of the reference node
+        :param str referent_rid:            rid of the referent node
+        :param str reference_condition:     search conditions of reference node
+        :param str referent_condition:      search conditions of referent node
         :return:
+        :raises BrassException:             source of exception is set to the function name
         """
         src = None
         dst = None
@@ -387,11 +409,12 @@ class BrassOrientDBHelper(object):
 
                             parent node <- child node
 
-        :param parent_rid:              rid of parent node
-        :param child_rid:               rid of child node
-        :param parent_conditions:       search conditions of parent node
-        :param child_conditions:        search conditions of child node
+        :param str parent_rid:              rid of parent node
+        :param str child_rid:               rid of child node
+        :param str parent_conditions:       search conditions of parent node
+        :param str child_conditions:        search conditions of child node
         :return:
+        :raises BrassException:             source of exception is set to the function name
         """
         src = None
         dst = None
@@ -422,11 +445,12 @@ class BrassOrientDBHelper(object):
 
                                         reference node -> referent node
 
-        :param reference_rid:           rid of the reference node
-        :param referent_rid:            rid of the referent node
-        :param reference_condition:     search conditions of reference node
-        :param referent_condition:      search conditions of referent node
+        :param str reference_rid:           rid of the reference node
+        :param str referent_rid:            rid of the referent node
+        :param str reference_condition:     search conditions of reference node
+        :param str referent_condition:      search conditions of referent node
         :return:
+        :raises BrassException:             source of exception is set to the function name
         """
         src = None
         dst = None
@@ -454,8 +478,10 @@ class BrassOrientDBHelper(object):
     def create_node_class(self, name):
         """
         Creates a new type of vertex in the database.
-        :param name:        name of the new vertex class in string
+
+        :param str name:                name of the new vertex class in string
         :return:
+        :raises BrassException:         source of exception is set to the function name
         """
         try:
             sql_cmd = create_class_sql(name, 'V')
@@ -470,8 +496,10 @@ class BrassOrientDBHelper(object):
     def create_edge_class(self, name):
         """
         Creates a new type of edge in the database.
-        :param name:        name of the new edge class in string
+
+        :param str name:        name of the new edge class in string
         :return:
+        :raises BrassException:             source of exception is set to the function name
         """
         try:
             sql_cmd = create_class_sql(name, 'E')
@@ -485,9 +513,11 @@ class BrassOrientDBHelper(object):
     def create_node(self, type, properties={}):
         """
         Creates a new node of a specific vertex type and with the properties defined by properties dictionary.
-        :param type:            string that specifies the type of vertex class
-        :param properties:      dictionary containing properties and values to set for the new node
+
+        :param str type:                    string that specifies the type of vertex class
+        :param dictionary properties:       dictionary containing properties and values to set for the new node
         :return:
+        :raises BrassException:             source of exception is set to the function name
         """
         try:
             sql_cmd = insert_sql(type, **properties)
@@ -502,8 +532,8 @@ class BrassOrientDBHelper(object):
 
     def run_query(self, sql):
         '''
-        :param sql:     The sql string to run
-        :return:
+        :param str sql:     The sql string to run
+        :return:            could be list of orientdb objects, boolean, or none
         '''
         return self._orientdb_client.run_command(sql)
 

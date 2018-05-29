@@ -1,9 +1,9 @@
 """
-orientdb_sql.py
 
-This file contains functions that create sql command strings for orientdb.
+Module contains functions that create sql command strings for orientdb.
 
 Author: Di Yao (di.yao@vanderbilt.edu)
+
 """
 
 
@@ -15,11 +15,10 @@ def condition_str(lh, rh, op='='):
     time > '20000'
 
 
-    :param lh: left hand side of the condition
-    :param rh: right hand side of the condition
-    :param op: logical operator
-    :return: string
-                name = 'Clark'
+    :param str lh: left hand side of the condition
+    :param str rh: right hand side of the condition
+    :param str op: logical operator
+    :return:        conditional string in the form of name = 'Clark'
     '''
     if lh == 'rid' or lh == 'class':
         return "@{0}{1}'{2}'".format(lh, op, rh)
@@ -32,10 +31,10 @@ def select_sql(target, conditions=[], data_to_extract=[]):
     Creates a select sql string based on the passed in parameters.
     Select queries a database for records (vertices) based on some conditions.
 
-    :param target:          can be rid or class name or V (for vertex class)
-    :param conditions:      list of conditions for the query
-    :param data_to_extract: list of data fields to extract
-    :return: string:        sql command
+    :param str target:              can be rid or class name or V (for vertex class)
+    :param list conditions:         list of conditions for the query
+    :param list data_to_extract:    list of data fields to extract
+    :return:                        sql select command string
     '''
     query_sql = ['select']
 
@@ -87,9 +86,9 @@ def traverse_sql(target, **kwargs):
     Creates a traverse sql string based passed in parameters.
     Traverse retrieves connected records(vertices) crossing relationships(edges).
 
-    :param target:  can be rid or class name
+    :param str target:  can be rid or class name
     :param kwargs:  list of traverse conditions
-    :return:        sql string
+    :return:        sql traverse command string
     '''
 
     query_sql = ['traverse']
@@ -112,10 +111,11 @@ def update_sql(target, *argv):
     '''
     Updates the properties of a database record/vertex.
 
-    :param target:  rid of the record/vertex to update
-    :param argv:    List of properties to modify on the record/vertex.
+    :param str target:  rid of the record/vertex to update
+    :param list argv:    List of properties to modify on the record/vertex.
                     OrientDB will create the property if it doesn't already exist.
-    :return:        sql string
+    :return:        sql update command string
+
     '''
     query_sql = ['update']
     query_sql.append(target)
@@ -130,8 +130,9 @@ def update_sql(target, *argv):
 def delete_v_sql(rid):
     """
     Forms a delete node with rid sql command.
-    :param rid:         rid of node to delete
-    :return:            sql string
+
+    :param str rid:         rid of node to delete
+    :return:                sql delete vertex command string
     """
     query_sql = ['delete', 'vertex', rid]
     return ' '.join(query_sql)
@@ -139,10 +140,11 @@ def delete_v_sql(rid):
 def delete_e_sql(type, src, dst):
     """
     Forms a delete edge sql command between src and dst nodes.
-    :param type:        type of edge to delete
-    :param src:         src of the edge - can be rid or a search string
-    :param dst:         dst of the edge - can be rid or a search string
-    :return:            sql string
+
+    :param str type:        type of edge to delete
+    :param str src:         src of the edge - can be rid or a search string
+    :param str dst:         dst of the edge - can be rid or a search string
+    :return:                sql delete edge command string
     """
     if not src.startswith('#'):
         src = ('(' + src + ')')
@@ -155,10 +157,11 @@ def delete_e_sql(type, src, dst):
 
 def create_vertex_sql(type, **properties):
     """
-    Returns a sql command to create a new node with properties and values specified by "properties"
-    :param type:                type of node to create
-    :param properties:          properties and values of the node
-    :return:                    sql string
+    Returns a sql command to create a new node with properties and values specified by "properties".
+
+    :param str type:                        type of node to create
+    :param dictionary properties:           properties and values of the node
+    :return:                                sql create vertex command string
     """
     query_sql = ['create', 'vertex', type]
 
@@ -177,10 +180,11 @@ def create_vertex_sql(type, **properties):
 def create_edge_sql(type, src, dst):
     """
     Creates a new edge of type between src and dst nodes.
-    :param type:        type of edge of create
-    :param src:         src of the edge - can be rid or a search string
-    :param dst:         dst of the edge - can be rid or a search string
-    :return:            sql string
+
+    :param str type:        type of edge of create
+    :param str src:         src of the edge - can be rid or a search string
+    :param str dst:         dst of the edge - can be rid or a search string
+    :return:                sql create edge command string
     """
     if not src.startswith('#'):
         src = ('(' + src + ')')
@@ -196,10 +200,11 @@ def create_edge_sql(type, src, dst):
 def create_class_sql(name, superclass='V', cluster_size=1):
     """
     Forms a create vertex or an edge class sql command.
-    :param name:                name of the class ("MDLRoot", "RadioLink", etc)
-    :param superclass:          either V or E
-    :param cluster_size:        the cluster size for the new class
-    :return:                    sql string
+
+    :param str name:                name of the class ("MDLRoot", "RadioLink", etc)
+    :param str superclass:          either V or E
+    :param int cluster_size:        the cluster size for the new class
+    :return:                        sql create class command string
     """
     query_sql = ['create', 'class', name, 'extends', superclass, 'clusters', str(cluster_size)]
     return ' '.join(query_sql)
@@ -207,10 +212,11 @@ def create_class_sql(name, superclass='V', cluster_size=1):
 
 def insert_sql(type, **properties):
     """
-    Creates a new vertex or edge of "type" with properties specified by "properties"
-    :param type:                type of vertex node or edge to create (MDLRoot, RadioLink, etc)
-    :param properties:          properties and values to set for the new vertex node or edge
-    :return:                    sql string
+    Creates a new vertex or edge of "type" with properties specified by "properties".
+
+    :param str type:                type of vertex node or edge to create (MDLRoot, RadioLink, etc)
+    :param dictionary properties:   properties and values to set for the new vertex node or edge
+    :return:                        sql insert command string
     """
     query_sql = ['insert into', type]
 
