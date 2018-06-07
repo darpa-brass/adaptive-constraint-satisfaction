@@ -238,14 +238,14 @@ def insert_sql(type, **properties):
 
 if __name__ == "__main__":
     # Testing 'select'
-    conditions = (condition_str('EncryptionKeyID', 'gabah gabah'), condition_str('Name', 'gabah gabah'))
-    print select_sql('RadioLink', condition_str('EncryptionKeyID', 'gabah gabah'), condition_str('Name', 'gabah gabah'))
-    print select_sql('RadioLink', *conditions)
-    print select_sql('V', condition_str('rid', '#93:0'))
+    conditions = {condition_str('EncryptionKeyID', 'gabah gabah'), condition_str('Name', 'gabah gabah')}
+    print select_sql('RadioLink', {condition_str(lh='EncryptionKeyID', rh='gabah gabah'), condition_str(lh='Name', rh='gabah gabah')})
+    print select_sql('RadioLink', conditions)
+    print select_sql('V', {condition_str('rid', '#93:0')})
     print select_sql('RadioLink')
     print select_sql(
         traverse_sql('#161:0', direction='in', edgetype='Containment', maxdepth=1),
-        condition_str(lh='$depth', rh=1, op='>=')
+        {condition_str(lh='$depth', rh=1, op='>=')}
     )
 
 
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     print create_class_sql('myVertex')
     print create_class_sql('myEdge', superclass='E')
     print create_edge_sql('myEdge', '#30:0', '#28:0')
-    print create_edge_sql('myEdge', select_sql('V', condition_str('uid', 'dkakhdfdakdafd')), '#28:0')
+    print create_edge_sql('myEdge', select_sql('V', {condition_str('uid', 'dkakhdfdakdafd')}), '#28:0')
     print create_vertex_sql('myVertex', a='b', c=2, g='1kdfdk', h=0.100)
 
     # Testing 'delete'
