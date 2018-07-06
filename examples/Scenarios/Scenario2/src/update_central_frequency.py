@@ -69,6 +69,7 @@ def main(database=None, config_file=None):
     print('****************       Calling and Restting OrientDB         ****************')
 
     processor = BrassOrientDBHelper(database, config_file)
+    processor.open_database(over_write=False)
     reset_orientdb_central_fq(processor)
 
     TxOp_nodes = processor.get_nodes_by_type('TxOp')
