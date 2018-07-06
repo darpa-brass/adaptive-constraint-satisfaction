@@ -30,7 +30,7 @@ class MDLImporter(object):
 
         self.orientDB_helper = BrassOrientDBHelper(database_name=databaseName, config_file=configFile)
         self.mdlFile = mdlFile
-        self.orientDB_helper.open_database(over_write=False)
+        self.orientDB_helper.open_database(over_write=True)
 
 
     def import_mdl(self):
@@ -259,16 +259,17 @@ def main(database, config, mdlfile, remotePlocal=None):
 
     import os
 
-    if not os.path.exists(config):
-        BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-        config_file = "{0}\..\..\..\{1}".format(BASE_DIR, config)
-        if not os.path.exists(config_file):
-            print 'Config file does NOT exist.'
-            return
-    else:
-        config_file = config
+#    if not os.path.exists(config):
+#        BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+#        config_file = "{0}\..\..\..\{1}".format(BASE_DIR, config)
+#        if not os.path.exists(config_file):
+#            print 'Config file does NOT exist.'
+#            return
+#    else:
+#       config_file = config
 
     try:
+        config_file = config
         processor=MDLImporter(database, mdlfile, config_file)
         processor.import_mdl()
     except:

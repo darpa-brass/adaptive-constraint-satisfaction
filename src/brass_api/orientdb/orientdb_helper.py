@@ -7,6 +7,7 @@ Author: Di Yao (di.yao@vanderbilt.edu)
 """
 
 import sys
+import os
 
 from brass_orientdb_client import BrassOrientDBClient
 from brass_api.common.exception_class import BrassException
@@ -22,10 +23,15 @@ class BrassOrientDBHelper(object):
         if orientdb_client is not None:
             self._orientdb_client = orientdb_client
         else:
-            if database_name is not None and config_file is not None:
-                self._orientdb_client = BrassOrientDBClient(database_name, config_file)
-            else:
-                self._orientdb_client = None
+            if database_name is None:
+                raise BrassException('database is None', 'BrassOrientDBHelper.__init__')
+
+            if not os.path.exists(config_file):
+                raise BrassException('config file [{0}] does NOT exist'.format(config_file), 'BrassOrientDBHelper.__init__')
+
+
+            self._orientdb_client = BrassOrientDBClient(database_name, config_file)
+
 
     def close_database(self):
         """
