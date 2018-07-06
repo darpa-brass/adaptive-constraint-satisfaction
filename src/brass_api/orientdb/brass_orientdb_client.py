@@ -126,9 +126,10 @@ class BrassOrientDBClient(object):
         """
         self._client.db_create(self._db_name, pyorient.DB_TYPE_GRAPH)
         if self._db_password != None and self._db_username != None:
-            self._client.command(
-                "create user {0} identified by {1} role [writer,reader]".format(self._db_username, self._db_password)
-            )
+            if self._db_username != 'admin' and self._db_username != 'reader' and self._db_username != 'writer':
+                self._client.command(
+                    "create user {0} identified by {1} role [writer,reader]".format(self._db_username, self._db_password)
+                )
 
     def run_command(self, query_str):
         """
