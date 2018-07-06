@@ -14,9 +14,9 @@ import sys
 import os
 
 sys.path.append('src')
-from brass_api.brass_orientdb.brass_orientdb_helper import BrassOrientDBHelper
-from brass_api.brass_orientdb.brass_exceptions import BrassException
-from brass_api.brass_mdl.brass_mdl_exporter import MDLExporter
+from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
+# from brass_api.brass_orientdb.brass_exceptions import BrassException
+from brass_api.mdl.mdl_exporter import MDLExporter
 
 
 def reset_orientdb_central_fq(processor):
@@ -55,7 +55,7 @@ def printOrientRecord(record):
         if 'Containment' not in key and 'Reference' not in key:
             record_str.append('{0}:{1} '.format(key, record.oRecordData[key]))
 
-    print "{0}{1}{2}".format(record._class, createTabString(30 - len(record._class)), str(record_str))
+    print("{0}{1}{2}".format(record._class, createTabString(30 - len(record._class)), str(record_str)))
     # self.textFile.write("{0}{1}{2}\n".format(record._class, createTabString(30 - len(record._class)), str(recordStr)))
 
 
@@ -66,7 +66,7 @@ def main(database=None, config_file=None):
     :param (str) config_file: path to the config file for OrientDB
     :return:
     """
-    print '****************       Calling and Restting OrientDB         ****************'
+    print('****************       Calling and Restting OrientDB         ****************')
 
     processor = BrassOrientDBHelper(database, config_file)
     reset_orientdb_central_fq(processor)
@@ -75,30 +75,30 @@ def main(database=None, config_file=None):
     # Brass process of applying constraints happens here
     updated_frequency = 4943000000
     new_fqhz = processor.condition_str('CenterFrequencyHz', str(updated_frequency), '=')
-    print new_fqhz
+    print(new_fqhz)
 
     TxOp_nodes = processor.get_nodes_by_type('TxOp')
     RANConfiguration_nodes = processor.get_nodes_by_type('RANConfiguration')
     for txop_node in TxOp_nodes:
-        print txop_node
-        print '****************       Updating TxOp Node {0}         ****************'.format(txop_node._rid)
+        print(txop_node)
+        print ('****************       Updating TxOp Node {0}         ****************'.format(txop_node._rid))
         processor.update_node(txop_node._rid, new_fqhz)
 
     for ran_node in RANConfiguration_nodes:
-        print ran_node
-        print '****************       Updating RANConfiguration Node {0}         ****************'.format(ran_node._rid)
+        print(ran_node)
+        print('****************       Updating RANConfiguration Node {0}         ****************'.format(ran_node._rid))
         processor.update_node(ran_node._rid, new_fqhz)
 
 
-    print 'Post Modification'
+    print('Post Modification')
     TxOp_nodes = processor.get_nodes_by_type('TxOp')
     RANConfiguration_nodes = processor.get_nodes_by_type('RANConfiguration')
 
     for txop_node in TxOp_nodes:
-        print txop_node
+        print(txop_node)
 
     for ran_node in RANConfiguration_nodes:
-        print ran_node
+        print(ran_node)
 
     processor.close_database()
     export=MDLExporter(database, config_file)
@@ -108,8 +108,8 @@ if __name__ == "__main__":
     if len(sys.argv) >= 3:
         database = sys.argv[1]
         config_file = sys.argv[2]
+        main(database, config_file)
     else:
         sys.exit(
             'Not enough arguments. The script should be called as following: '
             'python {0} <OrientDbDatabase> <config file>'.format(os.path.basename(__file__)))
-    main(database, config_file)
