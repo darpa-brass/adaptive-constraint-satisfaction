@@ -258,11 +258,15 @@ def main(database, config, mdlfile, remotePlocal=None):
     """
 
     import os
-    BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-    config_file = "{0}\..\..\..\{1}".format(BASE_DIR, config)
-    if not os.path.exists(config_file):
-        print 'Config file does NOT exist.'
-        return
+
+    if not os.path.exists(config):
+        BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+        config_file = "{0}\..\..\..\{1}".format(BASE_DIR, config)
+        if not os.path.exists(config_file):
+            print 'Config file does NOT exist.'
+            return
+    else:
+        config_file = config
 
     try:
         processor=MDLImporter(database, mdlfile, config_file)
