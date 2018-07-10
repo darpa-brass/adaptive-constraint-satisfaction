@@ -155,7 +155,7 @@ class Processor(object):
                 radioLinkMDLNodes.append( self.traverse(v) )
 
         except:
-            print "Unexpected error:", sys.exc_info()[0]
+            print("Unexpected error:", sys.exc_info()[0])
 
 
 
@@ -180,7 +180,7 @@ def main(database, remotePlocal):
         processor.runTraverse()
         processor.closeDatabase()
     except:
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         exit(1)
 
 

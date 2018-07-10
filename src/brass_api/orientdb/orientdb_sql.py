@@ -239,34 +239,34 @@ def insert_sql(type, **properties):
 if __name__ == "__main__":
     # Testing 'select'
     conditions = {condition_str('EncryptionKeyID', 'gabah gabah'), condition_str('Name', 'gabah gabah')}
-    print select_sql('RadioLink', {condition_str(lh='EncryptionKeyID', rh='gabah gabah'), condition_str(lh='Name', rh='gabah gabah')})
-    print select_sql('RadioLink', conditions)
-    print select_sql('V', {condition_str('rid', '#93:0')})
-    print select_sql('RadioLink')
-    print select_sql(
+    print(select_sql('RadioLink', {condition_str(lh='EncryptionKeyID', rh='gabah gabah'), condition_str(lh='Name', rh='gabah gabah')}))
+    print(select_sql('RadioLink', conditions))
+    print(select_sql('V', {condition_str('rid', '#93:0')}))
+    print(select_sql('RadioLink'))
+    print(select_sql(
         traverse_sql('#161:0', direction='in', edgetype='Containment', maxdepth=1),
         {condition_str(lh='$depth', rh=1, op='>=')}
-    )
+    ))
 
 
     # Testing 'traverse'
-    print traverse_sql('#161:0', direction='in', edgetype='Containment', maxdepth=3)
+    print(traverse_sql('#161:0', direction='in', edgetype='Containment', maxdepth=3))
 
     # Testing 'update'
-    print update_sql('#93:0', condition_str('EncryptionKeyID', 'gabah gabah'), condition_str('Name', 'gabah gabah'))
+    print(update_sql('#93:0', condition_str('EncryptionKeyID', 'gabah gabah'), condition_str('Name', 'gabah gabah')))
 
     # Testing 'create'
-    print create_class_sql('myVertex')
-    print create_class_sql('myEdge', superclass='E')
-    print create_edge_sql('myEdge', '#30:0', '#28:0')
-    print create_edge_sql('myEdge', select_sql('V', {condition_str('uid', 'dkakhdfdakdafd')}), '#28:0')
-    print create_vertex_sql('myVertex', a='b', c=2, g='1kdfdk', h=0.100)
+    print(create_class_sql('myVertex'))
+    print(create_class_sql('myEdge', superclass='E'))
+    print(create_edge_sql('myEdge', '#30:0', '#28:0'))
+    print(create_edge_sql('myEdge', select_sql('V', {condition_str('uid', 'dkakhdfdakdafd')}), '#28:0'))
+    print(create_vertex_sql('myVertex', a='b', c=2, g='1kdfdk', h=0.100))
 
     # Testing 'delete'
-    print delete_e_sql('myVertex', '#5:0', '#6:0')
-    print delete_v_sql('#35:0')
+    print(delete_e_sql('myVertex', '#5:0', '#6:0'))
+    print(delete_v_sql('#35:0'))
 
     # Testing 'insert'
-    print insert_sql('myVertex', a='b', c=2, g='1kdfdk', h=0.100)
+    print(insert_sql('myVertex', a='b', c=2, g='1kdfdk', h=0.100))
     properties = {'a':'b', 'c':2, 'g':'1kdfdk', 'h':0.100}
-    print insert_sql('myVertex', **properties)
+    print(insert_sql('myVertex', **properties))

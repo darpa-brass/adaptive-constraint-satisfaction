@@ -148,9 +148,9 @@ Test Function.
 def test(database):
     try:
         orient_client = BrassOrientDBClient(database)
-        print "Successfully created Brass OrientDB Query Helper"
+        print("Successfully created Brass OrientDB Query Helper")
     except BrassException as e:
-        print e
+        print(e)
         exit(1)
 
 

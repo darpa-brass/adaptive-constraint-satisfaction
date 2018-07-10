@@ -15,8 +15,8 @@ Author: Di Yao (di.yao@vanderbilt.edu), Joseph Hite (joseph.e.hite@vanderbilt.ed
 import sys
 sys.path.append('src')
 
-from brass_api.brass_orientdb.brass_orientdb_helper import BrassOrientDBHelper
-from brass_api.brass_orientdb.brass_exceptions import BrassException
+from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
+# from brass_api.orientdb.brass_exceptions import BrassException
 # from brass_mdl.brass_mdl_exporter import MDLExporter
 
 
@@ -48,7 +48,7 @@ def printOrientRecord(record):
         if 'Containment' not in key and 'Reference' not in key:
             record_str.append('{0}:{1} '.format(key, record.oRecordData[key]))
 
-    print "{0}{1}{2}".format(record._class, createTabString(30 - len(record._class)), str(record_str))
+    print("{0}{1}{2}".format(record._class, createTabString(30 - len(record._class)), str(record_str)))
     # self.textFile.write("{0}{1}{2}\n".format(record._class, createTabString(30 - len(record._class)), str(recordStr)))
 
 
@@ -59,14 +59,14 @@ def main(database=None, config_file=None):
     :param (str) config_file: path to the config file for OrientDB
     :return:
     """
-    print '****************       Update RadioLink Schedule         ****************'
+    print('****************       Update RadioLink Schedule         ****************')
 
     processor = BrassOrientDBHelper(database, config_file)
 
     select_radio = processor.select_sql('RadioLink')
     RadioLink_nodes = processor.run_query(select_radio)
     for node in RadioLink_nodes:
-        print '>>>>>>> {0} : {1}'.format(node._rid, node.Name)
+        print('>>>>>>> {0} : {1}'.format(node._rid, node.Name))
         printOrientRecord(node)
     select_radio = '(' + select_radio + ')'
     traverse_radio = processor.traverse_sql(select_radio, direction='in', edgetype='Containment')
@@ -76,15 +76,15 @@ def main(database=None, config_file=None):
     # TxOp_nodes = processor.get_nodes_by_type('TxOp')
 
     for node in TxOp_nodes:
-        print node
+        print(node)
         new_startusec = processor.condition_str('StartUSec', str(int(node.StartUSec) + 105), '=')
         new_stopusec = processor.condition_str('StopUSec', str(int(node.StopUSec) + 105), '=')
         processor.update_node(node._rid, new_startusec, new_stopusec)
-    print 'Post Modification'
+    print('Post Modification')
     TxOp_nodes = processor.get_nodes_by_type('TxOp')
 
     for node in TxOp_nodes:
-        print node
+        print(node)
     processor.close_database()
 
 
@@ -94,5 +94,6 @@ if __name__ == "__main__":
         config_file = sys.argv[2]
     else:
         sys.exit(
-            'Not enough arguments. The script should be called as following: python example_simple.py myOrientDbDatabase remote')
+            'Not enough arguments. The script should be called as following: '
+            'python example_simple.py myOrientDbDatabase remote')
     main(database, config_file)

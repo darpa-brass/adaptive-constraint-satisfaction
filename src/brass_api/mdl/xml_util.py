@@ -106,10 +106,10 @@ def remove_mdl_root_tag_attr(xmlfile):
 
     for lines in fileinput.FileInput(xmlfile, inplace=1):
         if lines.startswith('<MDLRoot'):
-            print '<MDLRoot>'
+            print('<MDLRoot>')
             mdl_root_str = lines
         else:
-            print lines,
+            print(lines,)
 
     matchObj = re.search('MDL_(.*)xsd', mdl_root_str)
     if matchObj is not None:

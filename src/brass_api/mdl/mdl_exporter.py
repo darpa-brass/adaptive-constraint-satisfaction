@@ -14,7 +14,7 @@ Author: Di Yao (di.yao@vanderbilt.edu)
 
 
 from brass_api.orientdb.orientdb_helper import *
-import xml_util
+import brass_api.mdl.xml_util
 
 '''
 TODO: 
@@ -106,14 +106,14 @@ def main(database, config, remotePlocal=None):
     BASE_DIR = os.path.dirname(os.path.realpath(__file__))
     config_file = "{0}/../{1}".format(BASE_DIR, config)
     if not os.path.exists(config_file):
-        print 'Config file does NOT exist.'
+        print('Config file does NOT exist.')
         return
 
     try:
         processor=MDLExporter(database, config_file)
         processor.export_to_mdl()
     except:
-        print "Unexpected error:", sys.exc_info()[1]
+        print("Unexpected error:", sys.exc_info()[1])
         exit(1)
     finally:
         processor.orientDB_helper.close_database()

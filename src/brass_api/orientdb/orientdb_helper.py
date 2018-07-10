@@ -9,9 +9,9 @@ Author: Di Yao (di.yao@vanderbilt.edu)
 import sys
 import os
 
-from brass_orientdb_client import BrassOrientDBClient
+from brass_api.orientdb.brass_orientdb_client import BrassOrientDBClient
 from brass_api.common.exception_class import BrassException
-from orientdb_sql import *
+from brass_api.orientdb.orientdb_sql import *
 
 
 class BrassOrientDBHelper(object):
@@ -93,7 +93,7 @@ class BrassOrientDBHelper(object):
             return None
 
         if filterdepth > maxdepth:
-            print "[WARNING] filterdepth is greater than maxdepth. No results will be returned from query. [SOURCE] BrassOrientDBHelper.get_connected_nodes"
+            print("[WARNING] filterdepth is greater than maxdepth. No results will be returned from query. [SOURCE] BrassOrientDBHelper.get_connected_nodes")
             return None
 
         if filterdepth is None:
@@ -114,7 +114,7 @@ class BrassOrientDBHelper(object):
                  traverse_sql(targetNode_rid, direction=direction, edgetype=edgetype, maxdepth=maxdepth),
                  [filterdepth_condition]
                  )
-            print sql_cmd
+            print(sql_cmd)
             return self._orientdb_client.run_command(
                  sql_cmd
              )
@@ -141,7 +141,7 @@ class BrassOrientDBHelper(object):
 
         try:
             sql_cmd = select_sql(type)
-            print sql_cmd
+            print(sql_cmd)
             return self._orientdb_client.run_command(
                 sql_cmd
             )
@@ -164,7 +164,7 @@ class BrassOrientDBHelper(object):
 
         try:
             sql_cmd = select_sql('V', [condition_str('rid', targetNode_rid)])
-            print sql_cmd
+            print(sql_cmd)
             return self._orientdb_client.run_command(
                 sql_cmd
             )
@@ -183,7 +183,7 @@ class BrassOrientDBHelper(object):
         """
         try:
             sql_cmd = select_sql(property_conditions)
-            print sql_cmd
+            print(sql_cmd)
             return self._orientdb_client.run_command(
                 sql_cmd
             )
@@ -286,7 +286,7 @@ class BrassOrientDBHelper(object):
 
         try:
             sql_cmd = update_sql(targetNode_rid, *args)
-            print sql_cmd
+            print(sql_cmd)
             self._orientdb_client.run_command(
                 sql_cmd
             )
@@ -307,12 +307,12 @@ class BrassOrientDBHelper(object):
         """
         try:
             if len(self.get_node_by_rid(rid)) == 0:
-                print '[ERROR] Unable to delete node {0} because it does not exist in the database [SOURCE] {1}'.\
-                    format(rid, 'BrassOrientDBHelper.delete_node_by_rid')
+                print('[ERROR] Unable to delete node {0} because it does not exist in the database [SOURCE] {1}'.\
+                    format(rid, 'BrassOrientDBHelper.delete_node_by_rid'))
                 return False
             else:
                 sql_cmd = delete_v_sql(rid)
-                print sql_cmd
+                print(sql_cmd)
                 return self._orientdb_client.run_command(
                     sql_cmd
                 )
@@ -367,7 +367,7 @@ class BrassOrientDBHelper(object):
 
         if src is not None and dst is not None:
             sql_cmd = create_edge_sql('Containment', src, dst)
-            print sql_cmd
+            print(sql_cmd)
             return self._orientdb_client.run_command (
                 sql_cmd
             )
@@ -402,7 +402,7 @@ class BrassOrientDBHelper(object):
 
         if src is not None and dst is not None:
             sql_cmd = create_edge_sql('Reference', src, dst)
-            print sql_cmd
+            print(sql_cmd)
             return self._orientdb_client.run_command (
                 sql_cmd
             )
@@ -438,7 +438,7 @@ class BrassOrientDBHelper(object):
 
         if src is not None and dst is not None:
             sql_cmd = delete_e_sql('Containment', src, dst)
-            print sql_cmd
+            print(sql_cmd)
             self._orientdb_client.run_command(
                 sql_cmd
             )
@@ -473,7 +473,7 @@ class BrassOrientDBHelper(object):
 
         if src is not None and dst is not None:
             sql_cmd = delete_e_sql('Reference', src, dst)
-            print sql_cmd
+            print(sql_cmd)
             self._orientdb_client.run_command(
                 sql_cmd
             )
@@ -491,7 +491,7 @@ class BrassOrientDBHelper(object):
         """
         try:
             sql_cmd = create_class_sql(name, 'V')
-            print sql_cmd
+            print(sql_cmd)
             self._orientdb_client.run_command(
                 sql_cmd
             )
@@ -509,7 +509,7 @@ class BrassOrientDBHelper(object):
         """
         try:
             sql_cmd = create_class_sql(name, 'E')
-            print sql_cmd
+            print(sql_cmd)
             self._orientdb_client.run_command(
                 sql_cmd
             )
@@ -527,7 +527,7 @@ class BrassOrientDBHelper(object):
         """
         try:
             sql_cmd = insert_sql(type, **properties)
-            print sql_cmd
+            print(sql_cmd)
             self._orientdb_client.run_command(
                 sql_cmd
             )

@@ -1,5 +1,5 @@
-#start_imports
-import sys
+# start_imports
+import sys, os
 from random import Random
 from time import time
 from math import cos
@@ -11,7 +11,13 @@ from inspyred.ec import terminators
 from enum import Enum
 import itertools
 
-#end_imports
+sys.path.append('src')
+from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
+# from brass_api.brass_orientdb.brass_exceptions import BrassException
+from brass_api.mdl.mdl_exporter import MDLExporter
+from brass_api.orientdb.orientdb_sql import *
+
+# end_imports
 
 # Constraints
 epoch = 100000  # microseconds
@@ -28,10 +34,14 @@ uplink_requirements = math.ceil(voice / bitrate*epoch)
 
 
 class Transmission(object):
-    def __init__(self, previous_transmission=None, start_time=0, transmission_time=0, guard_band=1, link_direction='down'):
+    def __init__(self, previous_transmission=None,
+                 start_time=0,
+                 transmission_time=0,
+                 transmission_guard_band=1,
+                 link_direction='down'):
         self.start_time = start_time
         self.transmission_time = transmission_time
-        self.guard_band = guard_band
+        self.guard_band = transmission_guard_band
         self.link_direction = link_direction
         # if previous_transmission:
         #     if previous_transmission.link_direction != self.link_direction:
@@ -80,17 +90,24 @@ class Transmission(object):
 def generate_schedules(random, args):
     up_size = args.get('num_inputs_up', 1)
     down_size = args.get('num_inputs_down', 1)
-    candidate = [Transmission(transmission_time=random.uniform(0, int(latency/2)), guard_band=guard_band, link_direction='down'),
-                 Transmission(transmission_time=random.uniform(0, int(latency/2)), guard_band=guard_band, link_direction='up'),
-                 Transmission(transmission_time=random.uniform(0, int(latency/2)), guard_band=guard_band, link_direction='down'),
-                 Transmission(transmission_time=random.uniform(0, int(latency/2)), guard_band=guard_band, link_direction='up'),
-                 Transmission(transmission_time=random.uniform(0, int(latency/2)), guard_band=guard_band, link_direction='down'),
-                 Transmission(transmission_time=random.uniform(0, int(latency/2)), guard_band=guard_band, link_direction='up')]
+    candidate = [Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                              transmission_guard_band=guard_band, link_direction='down'),
+                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                              transmission_guard_band=guard_band, link_direction='up'),
+                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                              transmission_guard_band=guard_band, link_direction='down'),
+                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                              transmission_guard_band=guard_band, link_direction='up'),
+                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                              transmission_guard_band=guard_band, link_direction='down'),
+                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                              transmission_guard_band=guard_band, link_direction='up')]
     return bound_transmission(candidate, args)
 
 
 def bound_transmission(candidate, args):
     previous_transmission = None
+    print(candidate)
     for i, c in enumerate(candidate):
         if previous_transmission:
             c.set_start_time(previous_transmission.start_time + previous_transmission.get_total_transmission_time())
@@ -171,37 +188,62 @@ def mutate_transmission(random, candidates, args):
 def transmission_observer(population, num_generations, num_evaluations, args):
     print('{0} evaluations'.format(num_evaluations))
 
+def existing_schedule(schedule):
+    pass
 
-rand = Random()
-seed = int(time())
-print(seed)
-rand.seed(seed)
+def create_new_schedule():
+    rand = Random()
+    seed = int(time())
+    print(seed)
+    rand.seed(seed)
+
+    my_ec = inspyred.ec.EvolutionaryComputation(rand)
+    my_ec.selector = inspyred.ec.selectors.tournament_selection
+    my_ec.variator = [mutate_transmission]
+    my_ec.replacer = inspyred.ec.replacers.steady_state_replacement
+    my_ec.observer = transmission_observer
+    my_ec.terminator = [inspyred.ec.terminators.evaluation_termination, inspyred.ec.terminators.average_fitness_termination]
+
+    fit = -1
+
+    final_pop = my_ec.evolve(generator=generate_schedules,
+                             evaluator=evaluate_transmission,
+                             pop_size=100,
+                             maximize=True,
+                             bounder=bound_transmission,
+                             max_evaluations=1000,
+                             mutation_rate=1)
+    final_pop.sort(reverse=True)
+    final_fitness = final_pop[0].fitness
+    final_candidate = final_pop[0].candidate
+    # Sort and print the best individual, who will be at index 0.
+
+    print("Fitness: {0}".format(final_fitness))
+    print("Total Transmission Time: {0} microseconds per epoch".format(total_transmission_time(final_candidate)))
+    return final_candidate
+
+def main(database=None, config_file=None):
+    processor = BrassOrientDBHelper(database, config_file)
+    processor.open_database(over_write=False)
+
+    new_schedule = create_new_schedule()
+
+    print("Final Schedule:\n")
+    for c in new_schedule:
+        c.print_transmission()
 
 
-my_ec = inspyred.ec.EvolutionaryComputation(rand)
-my_ec.selector = inspyred.ec.selectors.tournament_selection
-my_ec.variator = [mutate_transmission]
-my_ec.replacer = inspyred.ec.replacers.steady_state_replacement
-my_ec.observer = transmission_observer
-my_ec.terminator = [inspyred.ec.terminators.evaluation_termination, inspyred.ec.terminators.average_fitness_termination]
+    processor.close_database()
 
-fit = -1
 
-final_pop = my_ec.evolve(generator=generate_schedules,
-                         evaluator=evaluate_transmission,
-                         pop_size=100,
-                         maximize=True,
-                         bounder=bound_transmission,
-                         max_evaluations=1000,
-                         mutation_rate=1)
-final_pop.sort(reverse=True)
-final_fitness = final_pop[0].fitness
-final_candidate = final_pop[0].candidate
-# Sort and print the best individual, who will be at index 0.
-print("Final Schedule:\n")
-for c in final_candidate:
-    c.print_transmission()
-print("Fitness: {0}".format(final_fitness))
-print("Total Transmission Time: {0} microseconds per epoch".format(total_transmission_time(final_candidate)))
+if __name__ == "__main__":
+    if len(sys.argv) >= 3:
+        database = sys.argv[1]
+        config_file = sys.argv[2]
+        main(database, config_file)
+    else:
+        sys.exit(
+            'Not enough arguments. The script should be called as following: '
+            'python {0} <OrientDbDatabase> <config file>'.format(os.path.basename(__file__)))
 
 # end_main
