@@ -516,17 +516,17 @@ class BrassOrientDBHelper(object):
         except:
             raise BrassException(sys.exc_info()[1], 'BrassOrientDBHelper.create_edge_class')
 
-    def create_node(self, type, properties={}):
+    def create_node(self, node_type, properties={}):
         """
         Creates a new node of a specific vertex type and with the properties defined by properties dictionary.
 
-        :param str type:                    string that specifies the type of vertex class
+        :param str node_type:                    string that specifies the type of vertex class
         :param dictionary properties:       dictionary containing properties and values to set for the new node
         :return:
         :raises BrassException:             source of exception is set to the function name
         """
         try:
-            sql_cmd = insert_sql(type, **properties)
+            sql_cmd = insert_sql(node_type, **properties)
             print(sql_cmd)
             self._orientdb_client.run_command(
                 sql_cmd

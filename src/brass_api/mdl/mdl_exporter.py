@@ -14,7 +14,7 @@ Author: Di Yao (di.yao@vanderbilt.edu)
 
 
 from brass_api.orientdb.orientdb_helper import *
-import brass_api.mdl.xml_util
+from brass_api.mdl import xml_util
 
 '''
 TODO: 
@@ -113,7 +113,7 @@ def main(database, config, remotePlocal=None):
         processor=MDLExporter(database, config_file)
         processor.export_to_mdl()
     except:
-        print("Unexpected error:", sys.exc_info()[1])
+        print("Unexpected error: {0}".format(sys.exc_info()[1]))
         exit(1)
     finally:
         processor.orientDB_helper.close_database()
