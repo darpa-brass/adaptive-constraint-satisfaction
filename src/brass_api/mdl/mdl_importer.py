@@ -11,9 +11,10 @@ import sys, os, shutil
 import lxml
 import pyorient
 from lxml import etree
-from xml_util import *
+from brass_api.mdl import xml_util
 from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
 from brass_api.orientdb.orientdb_sql import condition_str, select_sql
+from brass_api.common.exception_class import *
 
 
 class MDLImporter(object):
@@ -46,9 +47,9 @@ class MDLImporter(object):
         orient_mdl_file = self.mdlFile + '.orientdb'
         shutil.copy2(self.mdlFile, orient_mdl_file)
 
-        self._mdl_schema = remove_mdl_root_tag_attr(orient_mdl_file)
+        self._mdl_schema = xml_util.remove_mdl_root_tag_attr(orient_mdl_file)
 
-        validate_mdl(self.mdlFile, self._mdl_schema)
+        xml_util.validate_mdl(self.mdlFile, self._mdl_schema)
 
         self.parseXML(orient_mdl_file)
 
@@ -104,50 +105,53 @@ class MDLImporter(object):
             elif event == 'end':
 
                 # if the last attribute on the stack contains more than one thing, it's a vertex
-                if len(attribute_stack[-1][attribute_stack[-1].keys()[0]].keys()) > 1:
+                if len(attribute_stack[-1][list(attribute_stack[-1])[0]].keys()) > 1:
                     try:
-                        attribute_stack[-1][attribute_stack[-1].keys()[0]].pop(attribute_stack[-1].keys()[0])
+                        attribute_stack[-1][list(attribute_stack[-1])[0]].pop(list(attribute_stack[-1])[0])
                     except:
                         pass
 
                     a = attribute_stack.pop()
                     # if it doesn't have a unique identifier, will assign and also assign uid for the parent
                     if self.uidAlreadyAssigned(a) == 0:
-                        a[a.keys()[0]]['uid'] = self.assignUniqueId(a.keys()[0])
+                        a[list(a)[0]]['uid'] = self.assignUniqueId(list(a)[0])
                     try:
                         if self.uidAlreadyAssigned(attribute_stack[-1]) == 0:
-                            attribute_stack[-1][attribute_stack[-1].keys()[0]]['uid'] = self.assignUniqueId(
-                                attribute_stack[-1].keys()[0])
+                            attribute_stack[-1][list(attribute_stack[-1])[0]]['uid'] = self.assignUniqueId(
+                                list(attribute_stack[-1])[0])
                     except:
                         pass
 
                     # adding to the vertices list
                     vertices.append(a)
-                    verticesNames.append(a.keys()[0])
+                    verticesNames.append(list(a)[0])
                     try:
 
                         # creating a containment edge
                         containmentEdges.append(
-                            [a[a.keys()[0]]['uid'], attribute_stack[-1][attribute_stack[-1].keys()[0]]['uid']])
+                            [a[list(a)[0]]['uid'], attribute_stack[-1][list(attribute_stack[-1])[0]]['uid']])
                     except:
                         pass
 
                     try:
                         if len(attribute_stack) > 1:
                             if self.uidAlreadyAssigned(attribute_stack[-2]) == 0:
-                                attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(
-                                    attribute_stack[-2].keys()[0])
+                                attribute_stack[-2][list(attribute_stack[-2])[0]]['uid'] = self.assignUniqueId(
+                                    list(attribute_stack[-2])[0])
                     except:
                         raise BrassException(sys.exc_info()[0], 'MDLImporter.parseXML')
 
                 # if it doesn't contain more than one thing, it's an attribute and will need to add it to the vertex right above on the stack
                 else:
-                    attribute_stack[-2][attribute_stack[-2].keys()[0]] = dict(
-                        attribute_stack[-2][attribute_stack[-2].keys()[0]].items() + attribute_stack[-1][
-                            attribute_stack[-1].keys()[0]].items())
-                    if 'uid' not in attribute_stack[-2][attribute_stack[-2].keys()[0]].keys():
-                        attribute_stack[-2][attribute_stack[-2].keys()[0]]['uid'] = self.assignUniqueId(
-                            attribute_stack[-2].keys()[0])
+                    tmp_idx_1_attribute_stack_keys = list(attribute_stack[-1])
+                    tmp_idx_2_attribute_stack_keys = list(attribute_stack[-2])
+
+                    attribute_stack[-2][tmp_idx_2_attribute_stack_keys[0]] = dict(
+                        attribute_stack[-2][tmp_idx_2_attribute_stack_keys[0]].items()| attribute_stack[-1][
+                            tmp_idx_1_attribute_stack_keys[0]].items())
+                    if 'uid' not in attribute_stack[-2][tmp_idx_2_attribute_stack_keys[0]].keys():
+                        attribute_stack[-2][tmp_idx_2_attribute_stack_keys[0]]['uid'] = self.assignUniqueId(
+                            tmp_idx_2_attribute_stack_keys[0])
                     attribute_stack.pop()
 
         orientdbRestrictedIdentifier = []
@@ -165,15 +169,15 @@ class MDLImporter(object):
         for e in vertices:
             # print e
             try:
-                classToInsertInto = e.keys()[0]
+                classToInsertInto = list(e)[0]
                 if classToInsertInto in orientdbRestrictedIdentifier:
                     classToInsertInto += '_a'
 
                 if classToInsertInto == 'MDLRoot':
-                    e[e.keys()[0]]['schema'] = self._mdl_schema
+                    e[list(e)[0]]['schema'] = self._mdl_schema
 
 
-                self.orientDB_helper.create_node(classToInsertInto, e[e.keys()[0]])
+                self.orientDB_helper.create_node(classToInsertInto, e[list(e)[0]])
 
 
             except:
@@ -241,7 +245,7 @@ class MDLImporter(object):
         :return:                True or False
 
         """
-        if 'uid' in element[element.keys()[0]].keys():
+        if 'uid' in element[list(element)[0]].keys():
             return 1
         return 0
 
@@ -273,7 +277,7 @@ def main(database, config, mdlfile, remotePlocal=None):
         processor=MDLImporter(database, mdlfile, config_file)
         processor.import_mdl()
     except:
-        print "Unexpected error:", sys.exc_info()[1]
+        print ("Unexpected error: {0}".format(sys.exc_info()[1]))
         exit(1)
     finally:
         processor.orientDB_helper.close_database()
