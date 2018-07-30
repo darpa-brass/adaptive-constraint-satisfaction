@@ -17,7 +17,7 @@ sys.path.append('src')
 from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
 # from brass_api.brass_orientdb.brass_exceptions import BrassException
 from brass_api.mdl.mdl_exporter import MDLExporter
-
+from brass_api.mdl.mdl_importer import MDLImporter
 from brass_api.orientdb.orientdb_sql import *
 
 
@@ -62,7 +62,7 @@ def printOrientRecord(record):
     # self.textFile.write("{0}{1}{2}\n".format(record._class, createTabString(30 - len(record._class)), str(recordStr)))
 
 
-def main(database=None, config_file=None):
+def main(database=None, config_file=None, mdl_file=None, constraints=None):
     """
     Connects to OrientDB database, discovers the 'TxOp' Children of 'RadioLinks', and modifies the start and end times
     :param (str) database: the name of the OrientDB database
@@ -70,6 +70,10 @@ def main(database=None, config_file=None):
     :return:
     """
     print('****************       Calling and Restting OrientDB         ****************')
+
+    mdl_full_path = os.path.abspath(mdl_file)
+    importer = MDLImporter(database, mdl_full_path, config_file)
+    importer.import_mdl()
 
     processor = BrassOrientDBHelper(database, config_file)
     processor.open_database(over_write=False)
@@ -105,14 +109,16 @@ def main(database=None, config_file=None):
     #     print(ran_node)
 
     processor.close_database()
-    # export=MDLExporter(database, config_file)
-    # export.export_to_mdl()
+    export = MDLExporter(database, config_file)
+    export.export_to_mdl()
 
 if __name__ == "__main__":
     if len(sys.argv) >= 3:
         database = sys.argv[1]
         config_file = sys.argv[2]
-        main(database, config_file)
+        xml_file = sys.argv[3]
+        requirements_database = sys.argv[4]
+        main(database, config_file, xml_file, requirements_database)
     else:
         sys.exit(
             'Not enough arguments. The script should be called as following: '
