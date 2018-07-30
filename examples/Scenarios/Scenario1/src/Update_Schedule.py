@@ -2,12 +2,8 @@
 import sys, os
 from random import Random
 from time import time
-from math import cos
-from math import pi
 import math
 import inspyred
-from inspyred import ec
-from inspyred.ec import terminators
 from enum import Enum
 import itertools
 
@@ -15,22 +11,22 @@ sys.path.append('src')
 from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
 # from brass_api.brass_orientdb.brass_exceptions import BrassException
 from brass_api.mdl.mdl_exporter import MDLExporter
-from brass_api.orientdb.orientdb_sql import *
-
+from brass_api.mdl.mdl_importer import MDLImporter
+import brass_api.orientdb.orientdb_sql as osql
 # end_imports
 
 # Constraints
-epoch = 100000  # microseconds
-guard_band = 1000  # microseconds
-latency = 50000  # microseconds
-
-bitrate = 20000  # b/us
-bulk = 1000  # b/us
-voice = 50  # b/us
-safety = 150  # b/us
-
-downlink_requirements = math.ceil((bulk + safety + voice) / bitrate*epoch)
-uplink_requirements = math.ceil(voice / bitrate*epoch)
+# epoch = 100000  # microseconds
+# guard_band = 1000  # microseconds
+# latency = 50000  # microseconds
+#
+# bitrate = 20000  # b/us
+# bulk = 1000  # b/us
+# voice = 50  # b/us
+# safety = 150  # b/us
+#
+# downlink_requirements = math.ceil((bulk + safety + voice) / bitrate*epoch)
+# uplink_requirements = math.ceil(voice / bitrate*epoch)
 
 
 class Transmission(object):
@@ -88,25 +84,28 @@ class Transmission(object):
 
 
 def generate_schedules(random, args):
-    up_size = args.get('num_inputs_up', 1)
-    down_size = args.get('num_inputs_down', 1)
-    candidate = [Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+    constraints = args.get("constraints")
+    guard_band = constraints["guard_band"]
+    latency = constraints["latency"]
+    candidate = [Transmission(transmission_time=int(math.floor(random.uniform(0, int(latency / 2)))),
                               transmission_guard_band=guard_band, link_direction='down'),
-                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                 Transmission(transmission_time=int(math.floor(random.uniform(0, int(latency / 2)))),
                               transmission_guard_band=guard_band, link_direction='up'),
-                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                 Transmission(transmission_time=int(math.floor(random.uniform(0, int(latency / 2)))),
                               transmission_guard_band=guard_band, link_direction='down'),
-                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                 Transmission(transmission_time=int(math.floor(random.uniform(0, int(latency / 2)))),
                               transmission_guard_band=guard_band, link_direction='up'),
-                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                 Transmission(transmission_time=int(math.floor(random.uniform(0, int(latency / 2)))),
                               transmission_guard_band=guard_band, link_direction='down'),
-                 Transmission(transmission_time=random.uniform(0, int(latency / 2)),
+                 Transmission(transmission_time=int(math.floor(random.uniform(0, int(latency / 2)))),
                               transmission_guard_band=guard_band, link_direction='up')]
     return bound_transmission(candidate, args)
 
 
 def bound_transmission(candidate, args):
     previous_transmission = None
+    constraints = args.get('constraints')
+    epoch = constraints["epoch"]
     print(candidate)
     for i, c in enumerate(candidate):
         if previous_transmission:
@@ -121,19 +120,15 @@ def bound_transmission(candidate, args):
     return candidate
 
 
-bound_transmission.lower_bound = itertools.repeat(0)
-bound_transmission.upper_bound = itertools.repeat(latency)
-
-
 def segments(p):
     return zip(p, p[1:] + [p[0]])
 
 
-def check_latency(links):
+def check_latency(links, epoch, latency):
     pairs = segments(links)
     latency_score = 0
     for (x1, x2) in pairs:
-        if x2.start_time == epoch/4:
+        if x1.start_time > x2.start_time:
             if (x2.start_time+epoch)-x1.start_time > latency:
                 latency_score = -epoch
                 break
@@ -151,6 +146,19 @@ def evaluate_transmission(candidates, args):
     rand_val = Random()
     rand_val.seed(int(time()))
     fitness = []
+
+    constraints = args.get('constraints')
+
+    bulk = constraints['goal_throughput_bulk']
+    safety = constraints['goal_throughput_saftey']
+    voice = constraints['goal_throughput_voice']
+    bitrate = constraints['bitrate']
+    epoch = constraints['epoch']
+    latency = constraints['latency']
+
+    downlink_requirements = math.ceil((bulk + safety + voice) / bitrate * epoch)
+    uplink_requirements = math.ceil(voice / bitrate * epoch)
+
     for cs in candidates:
         uplinks = []
         downlinks = []
@@ -159,7 +167,7 @@ def evaluate_transmission(candidates, args):
                 uplinks.append(c)
             elif c.link_direction is "down":
                 downlinks.append(c)
-        latency_score = min(check_latency(downlinks), check_latency(uplinks))
+        latency_score = min(check_latency(downlinks, epoch, latency), check_latency(uplinks, epoch, latency))
         downlink_transmission_time = total_transmission_time(downlinks)
         uplink_transmission_time = total_transmission_time(uplinks)
         downlink_score = (downlink_transmission_time - downlink_requirements)/4
@@ -173,11 +181,14 @@ def evaluate_transmission(candidates, args):
 def mutate_transmission(random, candidates, args):
     mut_rate = args.setdefault('mutation_rate', 1)
     bounder = args['_ec'].bounder
+    constraints = args.get("constraints")
+    epoch = constraints["epoch"]
+
     for i, cs in enumerate(candidates):
         for j, (c, lo, hi) in enumerate(zip(cs, bounder.lower_bound, bounder.upper_bound)):
             if random.random()*epoch < mut_rate:
-                start_time = c.get_start_time() + int(random.triangular(-1, 1) * (hi - lo))
-                transmission_time = int(random.triangular(-0.5, -0.5) * (hi - lo))
+                start_time = c.get_start_time() + int(math.floor(random.triangular(-1, 1) * (hi - lo)))
+                transmission_time = int(math.floor(random.triangular(-0.5, -0.5) * (hi - lo)))
                 c.set_start_time(start_time)
                 c.set_transmission_time(transmission_time)
                 candidates[i][j] = c
@@ -188,10 +199,8 @@ def mutate_transmission(random, candidates, args):
 def transmission_observer(population, num_generations, num_evaluations, args):
     print('{0} evaluations'.format(num_evaluations))
 
-def existing_schedule(schedule):
-    pass
 
-def create_new_schedule():
+def create_new_schedule(system_constraints):
     rand = Random()
     seed = int(time())
     print(seed)
@@ -202,9 +211,13 @@ def create_new_schedule():
     my_ec.variator = [mutate_transmission]
     my_ec.replacer = inspyred.ec.replacers.steady_state_replacement
     my_ec.observer = transmission_observer
-    my_ec.terminator = [inspyred.ec.terminators.evaluation_termination, inspyred.ec.terminators.average_fitness_termination]
+    my_ec.terminator = [inspyred.ec.terminators.evaluation_termination,
+                        inspyred.ec.terminators.average_fitness_termination]
 
     fit = -1
+
+    bound_transmission.lower_bound = itertools.repeat(0)
+    bound_transmission.upper_bound = itertools.repeat(system_constraints['latency'])
 
     final_pop = my_ec.evolve(generator=generate_schedules,
                              evaluator=evaluate_transmission,
@@ -212,35 +225,102 @@ def create_new_schedule():
                              maximize=True,
                              bounder=bound_transmission,
                              max_evaluations=1000,
-                             mutation_rate=1)
+                             mutation_rate=1,
+                             constraints=system_constraints)
     final_pop.sort(reverse=True)
     final_fitness = final_pop[0].fitness
     final_candidate = final_pop[0].candidate
     # Sort and print the best individual, who will be at index 0.
 
-    print("Fitness: {0}".format(final_fitness))
-    print("Total Transmission Time: {0} microseconds per epoch".format(total_transmission_time(final_candidate)))
-    return final_candidate
+    return final_candidate, final_fitness
 
-def main(database=None, config_file=None):
+
+def main(database=None, config_file=None, mdl_file=None, constraints=None):
     processor = BrassOrientDBHelper(database, config_file)
+    constraints_database = BrassOrientDBHelper(constraints, config_file)
+
+    constraints_database.open_database(over_write=False)
+    scenarios = constraints_database.get_nodes_by_type("TestScenario")
+
+
+    for scenario in scenarios:
+        if scenario.name == "Test Scenario 1":
+            scenario_1 = scenario
+
+    constraints_list = constraints_database.get_child_nodes(scenario_1._rid, edgetype='HasConstraint')
+    for constraint in constraints_list:
+        if constraint.name == 'system wide constraint':
+            system_constraints = constraint.constraint_data
+            break
+    constraints_database.close_database()
+
+    mdl_full_path = os.path.abspath((mdl_file))
+    importer = MDLImporter(database, mdl_full_path, config_file)
+    importer.import_mdl()
     processor.open_database(over_write=False)
 
-    new_schedule = create_new_schedule()
+    new_schedule, final_fitness = create_new_schedule(system_constraints=system_constraints)
 
     print("Final Schedule:\n")
     for c in new_schedule:
         c.print_transmission()
 
+    txop_verties = processor.get_nodes_by_type("TxOp")
+    radio_link_vertices = processor.get_nodes_by_type("RadioLink")
+
+    radio_link_up_name = "GndRadio_to_TA"
+    radio_link_down_name = "TA_to_GndRadio"
+
+    for r in radio_link_vertices:
+        if r.Name == radio_link_up_name:
+            radio_link_up = r
+        elif r.Name == radio_link_down_name:
+            radio_link_down = r
+
+    print(txop_verties)
+    old_txop_list = [op._rid for op in txop_verties]
+    processor.delete_nodes_by_rid(old_txop_list)
+
+    txop_rids = []
+    for TxOp in new_schedule:
+        txop_properties = {"StopUSec": TxOp.get_end_time(),
+                           "TxOpTimeout": 255,
+                           "CenterFrequencyHz":	4919500000,
+                           "StartUSec": TxOp.get_start_time()}
+        processor.create_node("TxOp",txop_properties)
+        new_txop = processor.get_nodes_by_type("TxOp")
+        for op in new_txop:
+            if op._rid not in txop_rids:
+                txop_rids.append(op._rid)
+                new_op_rid = op._rid
+
+        if TxOp.link_direction == 'down':
+            radio_rid = radio_link_down._rid
+
+        elif TxOp.link_direction == 'up':
+            radio_rid = radio_link_up._rid
+
+        processor.set_containment_relationship(parent_rid=radio_rid, child_rid=new_op_rid)
 
     processor.close_database()
 
+    print("Fitness: {0}".format(final_fitness))
+    print("Total Transmission Time: {0} microseconds per epoch".format(total_transmission_time(new_schedule)))
+
+    print("Final Schedule:\n")
+    for c in new_schedule:
+        c.print_transmission()
+
+    export = MDLExporter(database, config_file)
+    export.export_to_mdl()
 
 if __name__ == "__main__":
     if len(sys.argv) >= 3:
         database = sys.argv[1]
         config_file = sys.argv[2]
-        main(database, config_file)
+        xml_file = sys.argv[3]
+        requirements_database = sys.argv[4]
+        main(database, config_file, xml_file, requirements_database)
     else:
         sys.exit(
             'Not enough arguments. The script should be called as following: '
