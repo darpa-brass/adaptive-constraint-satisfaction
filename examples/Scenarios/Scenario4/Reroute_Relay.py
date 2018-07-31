@@ -15,7 +15,7 @@ sys.path.append('src')
 from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
 # from brass_api.brass_orientdb.brass_exceptions import BrassException
 from brass_api.mdl.mdl_exporter import MDLExporter
-from brass_api.orientdb.orientdb_sql import *
+import brass_api.orientdb.orientdb_sql as osql
 
 # end_imports
 
@@ -29,8 +29,10 @@ bulk = 1000  # b/us
 voice = 50  # b/us
 safety = 150  # b/us
 
-downlink_requirements = math.ceil((bulk + safety + voice) / bitrate*epoch)
-uplink_requirements = math.ceil(voice / bitrate*epoch)
+test_to_relay = math.ceil((bulk + safety + voice) / bitrate*epoch)
+relay_to_test = math.ceil(voice / bitrate*epoch)
+relay_to_ground = math.ceil((bulk + 2*safety + 2*voice) / bitrate*epoch)
+ground_to_relay = math.ceil(2*voice / bitrate*epoch)
 
 
 class Transmission(object):
@@ -82,6 +84,12 @@ class Transmission(object):
     def get_total_transmission_time(self):
         return sum([self.transmission_time, self.guard_band])
 
+    def get_source(self):
+        return self.source
+
+    def get_destination(self):
+        return self.destination
+
     def print_transmission(self):
         print("Transmission Source:  {0}".format(self.source))
         print("Transmission Destination:  {0}".format(self.destination))
@@ -93,18 +101,36 @@ class Transmission(object):
 def generate_schedules(random, args):
     up_size = args.get('num_inputs_up', 1)
     down_size = args.get('num_inputs_down', 1)
+    source = args.get('test_article',1)
+    destination = args.get('ground',-1)
+    relay = args.get('relay',-1)
 
 
-    candidate = [Transmission(transmission_time=random.uniform(0, int(latency / 2)),
-                              transmission_guard_band=guard_band,
-                              source='down',
-                              destination='up')]
+    candidate = []
+
+    for t in range(3):
+        candidate.append(Transmission(transmission_time=random.uniform(0, int(latency/3)),
+                                      transmission_guard_band=guard_band,
+                                      source=source,
+                                      destination=relay))
+        candidate.append(Transmission(transmission_time=random.uniform(0, int(latency/3)),
+                                      transmission_guard_band=guard_band,
+                                      source=relay,
+                                      destination=destination))
+        candidate.append(Transmission(transmission_time=random.uniform(0, int(latency/3)),
+                                      transmission_guard_band=guard_band,
+                                      source=destination,
+                                      destination=relay))
+        candidate.append(Transmission(transmission_time=random.uniform(0, int(latency/3)),
+                                      transmission_guard_band=guard_band,
+                                      source=relay,
+                                      destination=source))
+
     return bound_transmission(candidate, args)
 
 
 def bound_transmission(candidate, args):
     previous_transmission = None
-    print(candidate)
     for i, c in enumerate(candidate):
         if previous_transmission:
             c.set_start_time(previous_transmission.start_time + previous_transmission.get_total_transmission_time())
@@ -126,18 +152,37 @@ def segments(p):
     return zip(p, p[1:] + [p[0]])
 
 
+def transmission_order(source, destination, relay):
+    trans_requiements = {}
+
+    trans_requiements[source+'_'+relay] = {}
+    trans_requiements[relay+'_'+source] = {}
+    trans_requiements[destination+'_'+relay] = {}
+    trans_requiements[relay+'_'+destination] = {}
+
+    trans_requiements[source+'_'+relay] = {'requirements': test_to_relay, 'transmissions': []}
+    trans_requiements[relay+'_'+source] = {'requirements': relay_to_test, 'transmissions': []}
+    trans_requiements[destination+'_'+relay] = {'requirements': ground_to_relay, 'transmissions': []}
+    trans_requiements[relay+'_'+destination] = {'requirements': relay_to_ground, 'transmissions': []}
+
+    return trans_requiements
+
+
 def check_latency(links):
     pairs = segments(links)
-    latency_score = 0
+    latency_score = []
     for (x1, x2) in pairs:
-        if x2.start_time == epoch/4:
-            if (x2.start_time+epoch)-x1.start_time > latency:
-                latency_score = -epoch
+        if x1.start_time > x2.start_time:
+            if abs((x2.start_time+epoch)-x1.start_time) > latency:
+                latency_score.append(0)
+                break
+            else:
+                latency_score.append(1)
                 break
         elif abs(x2.start_time - x1.start_time) > latency:
-            latency_score = -epoch
+            latency_score.append(0)
 
-    return latency_score
+    return min(latency_score)
 
 
 def total_transmission_time(links):
@@ -145,24 +190,48 @@ def total_transmission_time(links):
 
 
 def evaluate_transmission(candidates, args):
+    source = args.get('test_article', 1)
+    destination = args.get('ground', -1)
+    relay = args.get('relay', -1)
     rand_val = Random()
     rand_val.seed(int(time()))
     fitness = []
+    transmissions = transmission_order(source, destination, relay)
+
     for cs in candidates:
-        uplinks = []
-        downlinks = []
+        # Make Lists for each of the different source/destination pairs
+        # Check requirements for each individual set.
+        for key in transmissions:
+            transmissions[key]['transmissions'] = []
+            transmissions[key]['time'] = -epoch
+            transmissions[key]['score'] = -epoch
+        transmission_time_scores = []
+        total_trans_time = []
+        latencies = []
+
         for c in cs:
-            if c.link_direction is "up":
-                uplinks.append(c)
-            elif c.link_direction is "down":
-                downlinks.append(c)
-        latency_score = min(check_latency(downlinks), check_latency(uplinks))
-        downlink_transmission_time = total_transmission_time(downlinks)
-        uplink_transmission_time = total_transmission_time(uplinks)
-        downlink_score = (downlink_transmission_time - downlink_requirements)/4
-        uplink_score = (uplink_transmission_time - uplink_requirements)/4
-        transmission_time = (epoch - (downlink_transmission_time + uplink_transmission_time))/4
-        fit = latency_score + downlink_score + uplink_score + transmission_time
+            key = c.get_source() + '_' + c.get_destination()
+            transmissions[key]['transmissions'].append(c)
+
+        for key in transmissions:
+            requirement = transmissions[key]['requirements']
+            transmissions[key]['transmission_time'] = total_transmission_time(transmissions[key]['transmissions'])
+            print(requirement)
+            print(transmissions[key]['transmission_time'])
+            transmissions[key]['transmission_score'] = transmissions[key]['transmission_time']-requirement
+            transmissions[key]['latency_score'] = check_latency(transmissions[key]['transmissions'])
+
+            total_trans_time.append(transmissions[key]['transmission_time'])
+            transmission_time_scores.append(transmissions[key]['transmission_score'])
+            latencies.append(transmissions[key]['latency_score'])
+
+        latency_score = min(latencies)
+        transmission_time = epoch - sum(total_trans_time)
+        trans_score = sum(transmission_time_scores)
+
+        fit = latency_score * (transmission_time + trans_score)
+        print(fit)
+        # fit = rand_val.randint(0,1000)
         fitness.append(fit)
     return fitness
 
@@ -201,15 +270,16 @@ def create_new_schedule():
     my_ec.observer = transmission_observer
     my_ec.terminator = [inspyred.ec.terminators.evaluation_termination, inspyred.ec.terminators.average_fitness_termination]
 
-    fit = -1
-
     final_pop = my_ec.evolve(generator=generate_schedules,
                              evaluator=evaluate_transmission,
                              pop_size=100,
                              maximize=True,
                              bounder=bound_transmission,
                              max_evaluations=1000,
-                             mutation_rate=1)
+                             mutation_rate=1,
+                             test_article='TA',
+                             ground='Ground',
+                             relay='Relay')
     final_pop.sort(reverse=True)
     final_fitness = final_pop[0].fitness
     final_candidate = final_pop[0].candidate
@@ -218,6 +288,7 @@ def create_new_schedule():
     print("Fitness: {0}".format(final_fitness))
     print("Total Transmission Time: {0} microseconds per epoch".format(total_transmission_time(final_candidate)))
     return final_candidate
+
 
 def main(database=None, config_file=None):
     processor = BrassOrientDBHelper(database, config_file)
@@ -228,9 +299,25 @@ def main(database=None, config_file=None):
     print("Final Schedule:\n")
     for c in new_schedule:
         c.print_transmission()
-
-
     processor.close_database()
+
+    # txop_properties = {"StopUSec": start_time,
+    #                    "TxOpTimeout":255,
+    #                    "CenterFrequencyHz":	4919500000,
+    #                    "StartUSec":end_time}
+    # # osql.create_vertex_sql("TxOp")
+    #
+    # radiolink_properties = {"Name": 'hi',
+    #                    "Description": "hi",
+    #                    "TxRxEnable":'true',
+    #                    "HeartbeatTimeout":65535,
+    #                    "EncryptionEnabled":'false',
+    #                    'EncryptionKeyID':0}
+    # # osql.create_vertex_sql("RadioLink")
+    #
+    # radiogroup_properties = {"Name": 'name',
+    #                          "Description": "description",
+    #                          "GroupRFMACAddress": "GroupRFMACAddress"}
 
 
 if __name__ == "__main__":
