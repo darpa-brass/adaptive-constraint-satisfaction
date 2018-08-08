@@ -2,7 +2,7 @@
 
 ### Prerequisites
 
-1) python 2.7
+1) python 3.6
 
 2) pyorient
 ```
@@ -18,13 +18,13 @@
 
 1) config.json - Contains configuration data for connecting to the Orion orientDB server and database.
 
-2) example_custom_data_structure.py - Provides an example of a custom class to save query results. 
+2) examples - A set of example scripts and solutions to the various scenarios
 
-3) example_traverse_print.py - Provides a simple example that shows how to do a depth-first traversal of a MDL database in orientDB.
+3) scenario - Before and after mdl for each of the six scenarios
 
-4) mdlExporter.py - Use this script to export an orientDB database to a MDL xml file.
+4) src - Source files for api to OrientDB for use in the brass project. 
 
-5) serializerPyorientNew.py - Use this script to export a MDL xml file to an orientDB database. 
+
 
 
 ### Steps to run the scripts
@@ -35,8 +35,8 @@
 
 3) python script_name.py databaseName remote
 ```
-	python example_traverse_print.py yoBrass remote
-	python mdlExporter.py yoBrass remote
-	python serializerPyorientNew.py yoBrass remote
+	python examples\example_traverse_print.py yoBrass remote
+	python examples\import_export_mdl.py yoBrass remote
+	python examples\serializerPyorientNew.py yoBrass remote
 ```
 
