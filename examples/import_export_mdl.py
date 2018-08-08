@@ -12,9 +12,8 @@ Author: Joseph Hite (joseph.e.hite@vanderbilt.edu)
 
 import sys
 sys.path.append('src')
-
-from brass_api.brass_orientdb.brass_orientdb_helper import BrassOrientDBHelper
-from brass_api.brass_orientdb.brass_exceptions import BrassException
+from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
+from brass_api.common.exception_class import BrassException
 from brass_api.mdl.mdl_exporter import MDLExporter
 from brass_api.mdl.mdl_importer import MDLImporter
 
@@ -29,7 +28,7 @@ def main(database=None, config_file=None, mdl_file=None):
     :param (str) config_file: path to the config file for OrientDB
     :return:
     """
-    print '****************       Importing {0}          ****************'.format(mdl_file)
+    print('****************       Importing {0}          ****************'.format(mdl_file))
     importer = MDLImporter(databaseName=database, configFile=config_file, mdlFile=mdl_file)
     importer.import_mdl()
     importer.orientDB_helper.close_database()
