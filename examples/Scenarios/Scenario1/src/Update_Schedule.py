@@ -30,6 +30,9 @@ import brass_api.orientdb.orientdb_sql as osql
 
 
 class Transmission(object):
+    """
+    This is the class for defining a transmission period during a flight test.
+    """
     def __init__(self, previous_transmission=None,
                  start_time=0,
                  transmission_time=0,
@@ -84,6 +87,12 @@ class Transmission(object):
 
 
 def generate_schedules(random, args):
+    """
+
+    :param random: random number generator
+    :param args: arguments into the genetic algorithm call
+    :return: Bounded transmission schedule
+    """
     constraints = args.get("constraints")
     guard_band = constraints["guard_band"]
     latency = constraints["latency"]
@@ -103,6 +112,11 @@ def generate_schedules(random, args):
 
 
 def bound_transmission(candidate, args):
+    """
+    :param candidate: a candidate schedule using the Transmission class
+    :param args: arguments into the genetic algorithm call
+    :return: a Transmission class bounded based on requirements of the system
+    """
     previous_transmission = None
     constraints = args.get('constraints')
     epoch = constraints["epoch"]
@@ -125,6 +139,10 @@ def segments(p):
 
 
 def check_latency(links, epoch, latency):
+    """
+    :param links: a list of Transmissions that all are going in the same direction
+    :return: a score based on the value
+    """
     pairs = segments(links)
     latency_score = 0
     for (x1, x2) in pairs:
@@ -139,10 +157,19 @@ def check_latency(links, epoch, latency):
 
 
 def total_transmission_time(links):
+    """
+    :param links: a list of Transmissions that all are going in the same direction
+    :return: a summation of the total time of the transmissions in a given link
+    """
     return sum([c.get_transmission_time() for c in links])
 
 
 def evaluate_transmission(candidates, args):
+    """
+    :param candidates: a candidate schedule using the Transmission class
+    :param args: arguments into the genetic algorithm call
+    :return: a fitness score for a given candidates
+    """
     rand_val = Random()
     rand_val.seed(int(time()))
     fitness = []
@@ -179,6 +206,12 @@ def evaluate_transmission(candidates, args):
 
 
 def mutate_transmission(random, candidates, args):
+    """
+    :param random: random number generator
+    :param candidates: a candidate schedule using the Transmission class
+    :param args: arguments into the genetic algorithm call
+    :return: list of Transmissions
+    """
     mut_rate = args.setdefault('mutation_rate', 1)
     bounder = args['_ec'].bounder
     constraints = args.get("constraints")
@@ -201,6 +234,11 @@ def transmission_observer(population, num_generations, num_evaluations, args):
 
 
 def create_new_schedule(system_constraints):
+    """
+
+    :param system_constraints: Constraints from database on schedule constraints
+    :return final_candidate: list of
+    """
     rand = Random()
     seed = int(time())
     print(seed)
@@ -236,12 +274,26 @@ def create_new_schedule(system_constraints):
 
 
 def main(database=None, config_file=None, mdl_file=None, constraints=None):
+    """
+    Instantiates a Processor object and passes in the orientDB database name.
+    Instantiates a Constraints_Database object and passes in the orientDB database name for the system constraints.
+    Pulls down constraints for simulation from the database
+    Overwrites mdl in database with source mdl
+    Calls create_new_schedule()
+    Update database with new schedule
+    Export new MLD
+
+    :param database: name of an OrientDB
+    :param config_file: location of the config file used to import
+    :return:
+    """
+
+    # Open databases for MDL and System Constraints
     processor = BrassOrientDBHelper(database, config_file)
     constraints_database = BrassOrientDBHelper(constraints, config_file)
 
     constraints_database.open_database(over_write=False)
     scenarios = constraints_database.get_nodes_by_type("TestScenario")
-
 
     for scenario in scenarios:
         if scenario.name == "Test Scenario 1":
@@ -254,17 +306,20 @@ def main(database=None, config_file=None, mdl_file=None, constraints=None):
             break
     constraints_database.close_database()
 
+    # MDL Import Step
     mdl_full_path = os.path.abspath((mdl_file))
     importer = MDLImporter(database, mdl_full_path, config_file)
     importer.import_mdl()
     processor.open_database(over_write=False)
 
+    # Create new Schedule
     new_schedule, final_fitness = create_new_schedule(system_constraints=system_constraints)
 
     print("Final Schedule:\n")
     for c in new_schedule:
         c.print_transmission()
 
+    # Begin Updating MDL Database
     txop_verties = processor.get_nodes_by_type("TxOp")
     radio_link_vertices = processor.get_nodes_by_type("RadioLink")
 
@@ -310,6 +365,8 @@ def main(database=None, config_file=None, mdl_file=None, constraints=None):
     print("Final Schedule:\n")
     for c in new_schedule:
         c.print_transmission()
+
+    # Export Updated MDL
 
     export = MDLExporter(database, config_file)
     export.export_to_mdl()
