@@ -38,5 +38,8 @@
 	python examples\example_traverse_print.py yoBrass remote
 	python examples\import_export_mdl.py yoBrass remote
 	python examples\serializerPyorientNew.py yoBrass remote
+    python .\examples\Scenarios\Scenario1\src\Update_Schedule.py Brass_Scenario_1 config.json "scenario\scenario_1\BRASS_Scenario1_BeforeAdaptation.xml" brass_scenarios    
+    python .\examples\Scenarios\Scenario2\src\update_central_frequency.py Brass_Scenario_2 config.json "scenario\scenario_2\BRASS_Scenario2_BeforeAdaptation.xml" brass_scenarios    
+    python .\examples\Scenarios\Scenario4\Reroute_Relay.py Brass_Scenario_4 config.json "scenario\scenario_4\BRASS_Scenario4_Before_Adaptation-mwt-valid.xml"
 ```
 

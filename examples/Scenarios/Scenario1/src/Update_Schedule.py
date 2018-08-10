@@ -12,7 +12,7 @@ from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
 # from brass_api.brass_orientdb.brass_exceptions import BrassException
 from brass_api.mdl.mdl_exporter import MDLExporter
 from brass_api.mdl.mdl_importer import MDLImporter
-import brass_api.orientdb.orientdb_sql as osql
+
 # end_imports
 
 # Constraints

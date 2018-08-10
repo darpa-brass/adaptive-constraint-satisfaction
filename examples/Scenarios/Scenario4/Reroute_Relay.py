@@ -13,9 +13,9 @@ import itertools
 
 sys.path.append('src')
 from brass_api.orientdb.orientdb_helper import BrassOrientDBHelper
-# from brass_api.brass_orientdb.brass_exceptions import BrassException
 from brass_api.mdl.mdl_exporter import MDLExporter
-import brass_api.orientdb.orientdb_sql as osql
+from brass_api.mdl.mdl_importer import MDLImporter
+# import brass_api.orientdb.orientdb_sql as osql
 
 # end_imports
 
@@ -290,7 +290,12 @@ def create_new_schedule():
     return final_candidate
 
 
-def main(database=None, config_file=None):
+def main(database=None, config_file=None, mdl_file=None):
+
+    mdl_full_path = os.path.abspath(mdl_file)
+    importer = MDLImporter(database, mdl_full_path, config_file)
+    importer.import_mdl()
+
     processor = BrassOrientDBHelper(database, config_file)
     processor.open_database(over_write=False)
 
@@ -324,7 +329,8 @@ if __name__ == "__main__":
     if len(sys.argv) >= 3:
         database = sys.argv[1]
         config_file = sys.argv[2]
-        main(database, config_file)
+        xml_file = sys.argv[3]
+        main(database, config_file, xml_file)
     else:
         sys.exit(
             'Not enough arguments. The script should be called as following: '
