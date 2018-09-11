@@ -12,3 +12,5 @@
 *pycache*
 
 .ipynb_checkpoints/
+
+config.json
