@@ -16,7 +16,7 @@
 
 ### Files
 
-1) config.json - Contains configuration data for connecting to the Orion orientDB server and database.
+1) config-template.json - Template file containing configuration data for connecting to the Orion orientDB server and database. Needs to be copied to config.json by user on their local machine.
 
 2) examples - A set of example scripts and solutions to the various scenarios
 
@@ -31,9 +31,11 @@
 
 1) Checkout the repo.
 
-2) Open config.json and fill out "username" and "password" under server and database sections with your credentials.
+2) Copy config-template.json to config.json. config-template.json only serves as a template file while config.json is your local config file that should be used by scripts to get credential information.
 
-3) python script_name.py databaseName remote
+3) Open config.json and fill out "username" and "password" under server and database sections with your credentials. OrientDB creates 3 default database users when a database is initially created: admin, reader, writer. Their respective passwords are: "admin", "reader", "writer". Feel free to use these in the database section of the config.json file.
+
+4) python script_name.py databaseName remote
 ```
 	python examples\example_traverse_print.py yoBrass remote
 	python examples\import_export_mdl.py yoBrass remote
